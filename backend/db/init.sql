@@ -3,6 +3,7 @@ CREATE TYPE transaction_type AS ENUM ('income', 'expense');
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL,
   whatsapp_number VARCHAR(20) NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -11,7 +12,7 @@ CREATE TABLE wallets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
-  initial_balance NUMERIC(14, 2) NOT NULL DEFAULT 0,
+  balance NUMERIC(14, 2) NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
