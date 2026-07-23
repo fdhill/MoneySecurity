@@ -19,9 +19,20 @@ async function show(req, res, next) {
   }
 }
 
-async function store(req, res, next) {
+async function storeAdmin(req, res, next) {
   try {
     const user = await userService.createUser(req.body);
+    created(res, user, 'User created successfully');
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function store(req, res, next) {
+  try {
+    const request = req.body;
+    request.role = 2;
+    const user = await userService.createUser(request);
     created(res, user, 'User created successfully');
   } catch (err) {
     next(err);
@@ -39,11 +50,11 @@ async function update(req, res, next) {
 
 async function destroy(req, res, next) {
   try {
-    await userService.deleteUser(Number(req.params.id));
+    await userService.deleteUser(req.params.id);
     ok(res, null, 'User deleted successfully');
   } catch (err) {
     next(err);
   }
 }
 
-module.exports = { index, show, store, update, destroy };
+module.exports = { index, show, store, storeAdmin, update, destroy };

@@ -23,4 +23,17 @@ function authenticate(req, res, next) {
   }
 }
 
+function authorize(...roles) {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return fail(
+        res,
+        'You do not have permission to access this resource',
+        403,
+      );
+    }
+    next();
+  };
+}
+
 module.exports = { authenticate, authorize };

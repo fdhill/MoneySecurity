@@ -9,7 +9,7 @@ async function login({ whatsapp_number, password }) {
     throw err;
   }
 
-  const user = await userRepository.findByEmail(email);
+  const user = await userRepository.findByWhatsappNumber(whatsapp_number);
   if (!user) {
     const err = new Error('Invalid number or password');
     err.status = 401;
@@ -26,6 +26,7 @@ async function login({ whatsapp_number, password }) {
   const payload = {
     sub: user.id,
     name: user.name,
+    role: user.role,
     number: user.whatsapp_number,
   };
 

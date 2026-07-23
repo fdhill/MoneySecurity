@@ -1,4 +1,4 @@
-const pool = require('../Config/db');
+const pool = require('../config/db');
 const User = require('../models/User');
 
 async function findAll() {
@@ -19,10 +19,10 @@ async function findByWhatsappNumber(whatsappNumber) {
   return rows[0] ? new User(rows[0]) : null;
 }
 
-async function create({ name, whatsapp_number, password }) {
+async function create({ name, whatsapp_number, password, role }) {
   const { rows } = await pool.query(
-    'INSERT INTO users (name, password, whatsapp_number) VALUES ($1, $2, $3) RETURNING *',
-    [name, password, whatsapp_number],
+    'INSERT INTO users (name, whatsapp_number, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
+    [name, whatsapp_number, password, role],
   );
   return new User(rows[0]);
 }
@@ -36,12 +36,17 @@ async function update(id, { name, whatsapp_number }) {
 }
 
 async function remove(id) {
-  const { rowCount } = await pool.query('DELETE FROM users WHERE id = $1', [id]);
+  const { rowCount } = await pool.query('DELETE FROM users WHERE id = $1', [
+    id,
+  ]);
   return rowCount > 0;
 }
 
 async function changePassword(id, password) {
-  await pool.query('UPDATE users SET password = $1 WHERE id = $2', [password, id]);
+  await pool.query('UPDATE users SET password = $1 WHERE id = $2', [
+    password,
+    id,
+  ]);
   return 'Your password has been successfully changed';
 }
 
