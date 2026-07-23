@@ -1,5 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 CREATE TYPE transaction_type AS ENUM ('income', 'expense');
 
 CREATE TABLE users (
@@ -38,10 +36,6 @@ CREATE TABLE transactions (
   transaction_date DATE NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
--- Seed admin pertama (role 1 = admin). Ganti password ini setelah setup awal.
-INSERT INTO users (name, whatsapp_number, password, role)
-VALUES ('Admin', '080000000000', crypt('admin123', gen_salt('bf')), 1);
 
 CREATE INDEX idx_wallets_user_id ON wallets(user_id);
 CREATE INDEX idx_categories_user_id ON categories(user_id);
