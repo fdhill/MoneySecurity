@@ -1,4 +1,9 @@
 class Transaction {
+  static TYPE = Object.freeze({
+    EXPENSE: 'expense',
+    INCOME: 'income',
+  });
+
   constructor({
     id,
     user_id,

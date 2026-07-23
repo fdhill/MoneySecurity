@@ -1,4 +1,9 @@
 class Category {
+  static TYPE = Object.freeze({
+    EXPENSE: 'expense',
+    INCOME: 'income',
+  });
+
   constructor({ id, user_id, name, type, created_at } = {}) {
     this.id = id ?? null;
     this.user_id = user_id ?? null;
