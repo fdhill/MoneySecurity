@@ -21,9 +21,11 @@ async function getUserById(id) {
   return user;
 }
 
-async function createUser({ name, password, whatsapp_number }) {
-  if (!name || !whatsapp_number || !password) {
-    const err = new Error('name, password, and whatsapp_number are required');
+async function createUser({ name, whatsapp_number, password, role }) {
+  if (!name || !whatsapp_number || !password || !role) {
+    const err = new Error(
+      'name, password, role, and whatsapp_number are required',
+    );
     err.status = 400;
     throw err;
   }
@@ -38,8 +40,9 @@ async function createUser({ name, password, whatsapp_number }) {
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
   return userRepository.create({
     name,
-    password: hashedPassword,
     whatsapp_number,
+    password: hashedPassword,
+    role,
   });
 }
 
