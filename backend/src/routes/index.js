@@ -4,6 +4,7 @@ const { authenticate } = require('../middlewares/authenticate');
 const healthRouter = require('./health');
 const userRoutes = require('./userRoutes');
 const authRoutes = require('./authRoutes');
+const categoryRoutes = require('./categoryRoutes');
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.use('/auth', authRoutes);
 // semua route di bawah ini wajib login (token valid)
 router.use(authenticate);
 router.use('/users', userRoutes);
+router.use('/categories', categoryRoutes);
 
 router.use((req, res) => {
   res.status(404);
