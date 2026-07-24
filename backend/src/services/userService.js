@@ -58,6 +58,18 @@ async function updateUser(id, { name, whatsapp_number }) {
   return user;
 }
 
+async function updateProfile(user, { name, whatsapp_number }) {
+  if (!name || !whatsapp_number) {
+    const err = new Error('name and whatsapp_number are required');
+    err.status = 400;
+    throw err;
+  }
+
+  const updated = await userRepository.update(user.id, { name, whatsapp_number });
+  assertFound(user.id, updated);
+  return updated;
+}
+
 async function deleteUser(id) {
   const deleted = await userRepository.remove(id);
   if (!deleted) {
@@ -87,6 +99,7 @@ module.exports = {
   getUserById,
   createUser,
   updateUser,
+  updateProfile,
   deleteUser,
   changePassword,
 };
