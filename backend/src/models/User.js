@@ -14,7 +14,6 @@ class User {
       name: this.name,
       whatsapp_number: this.whatsapp_number,
       role: this.role,
-      created_at: this.created_at,
     };
   }
 }

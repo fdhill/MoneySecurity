@@ -36,7 +36,6 @@ class Transaction {
       type: this.type,
       description: this.description,
       transaction_date: this.transaction_date,
-      created_at: this.created_at,
     };
   }
 }
