@@ -5,6 +5,7 @@ const healthRouter = require('./health');
 const userRoutes = require('./userRoutes');
 const authRoutes = require('./authRoutes');
 const categoryRoutes = require('./categoryRoutes');
+const walletRoutes = require('./walletRoutes');
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router.use('/auth', authRoutes);
 router.use(authenticate);
 router.use('/users', userRoutes);
 router.use('/categories', categoryRoutes);
+router.use('/wallets', walletRoutes);
 
 router.use((req, res) => {
   res.status(404);
