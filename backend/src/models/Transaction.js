@@ -13,6 +13,8 @@ class Transaction {
     type,
     description,
     transaction_date,
+    wallet_name,
+    category_name,
     created_at,
   } = {}) {
     this.id = id ?? null;
@@ -23,6 +25,8 @@ class Transaction {
     this.type = type ?? null;
     this.description = description ?? null;
     this.transaction_date = transaction_date ?? null;
+    this.wallet_name = wallet_name ?? null;
+    this.category_name = category_name ?? null;
     this.created_at = created_at ?? null;
   }
 
@@ -31,7 +35,9 @@ class Transaction {
       id: this.id,
       user_id: this.user_id,
       wallet_id: this.wallet_id,
+      wallet_name: this.wallet_name,
       category_id: this.category_id,
+      category_name: this.category_name,
       amount: this.amount,
       type: this.type,
       description: this.description,
