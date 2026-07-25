@@ -4,7 +4,8 @@ const { ok, created } = require('../utils/response');
 async function index(req, res, next) {
   try {
     const wallets = await walletService.getAllWallets(req.user);
-    ok(res, wallets, 'wallets retrieved successfully');
+    const json = wallets.map((c) => c.toJSON());
+    ok(res, json, 'wallets retrieved successfully');
   } catch (err) {
     next(err);
   }
@@ -13,7 +14,7 @@ async function index(req, res, next) {
 async function show(req, res, next) {
   try {
     const wallet = await walletService.getWalletById(req.params.id, req.user);
-    ok(res, wallet, 'wallet retrieved successfully');
+    ok(res, wallet.toJSON(), 'wallet retrieved successfully');
   } catch (err) {
     next(err);
   }
@@ -22,7 +23,7 @@ async function show(req, res, next) {
 async function store(req, res, next) {
   try {
     const wallet = await walletService.createWallet(req.body, req.user);
-    created(res, wallet, 'wallet created successfully');
+    created(res, wallet.toJSON(), 'wallet created successfully');
   } catch (err) {
     next(err);
   }
@@ -35,7 +36,7 @@ async function update(req, res, next) {
       req.body,
       req.user,
     );
-    ok(res, wallet, 'wallet updated successfully');
+    ok(res, wallet.toJSON(), 'wallet updated successfully');
   } catch (err) {
     next(err);
   }

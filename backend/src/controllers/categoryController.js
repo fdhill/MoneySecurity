@@ -4,7 +4,8 @@ const { ok, created } = require('../utils/response');
 async function index(req, res, next) {
   try {
     const categories = await categoryService.getAllCategories(req.user);
-    ok(res, categories, 'categories retrieved successfully');
+    const json = categories.map((c) => c.toJSON());
+    ok(res, json, 'categories retrieved successfully');
   } catch (err) {
     next(err);
   }
@@ -16,7 +17,7 @@ async function show(req, res, next) {
       req.params.id,
       req.user,
     );
-    ok(res, category, 'category retrieved successfully');
+    ok(res, category.toJSON(), 'category retrieved successfully');
   } catch (err) {
     next(err);
   }
@@ -25,7 +26,7 @@ async function show(req, res, next) {
 async function store(req, res, next) {
   try {
     const category = await categoryService.createCategory(req.body, req.user);
-    created(res, category, 'category created successfully');
+    created(res, category.toJSON(), 'category created successfully');
   } catch (err) {
     next(err);
   }
@@ -38,7 +39,7 @@ async function update(req, res, next) {
       req.body,
       req.user,
     );
-    ok(res, category, 'category updated successfully');
+    ok(res, category.toJSON(), 'category updated successfully');
   } catch (err) {
     next(err);
   }

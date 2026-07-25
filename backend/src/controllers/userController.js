@@ -4,7 +4,8 @@ const { ok, created } = require('../utils/response');
 async function index(req, res, next) {
   try {
     const users = await userService.getAllUsers();
-    ok(res, users, 'Users retrieved successfully');
+    const json = users.map((c) => c.toJSON());
+    ok(res, json, 'Users retrieved successfully');
   } catch (err) {
     next(err);
   }
@@ -13,7 +14,7 @@ async function index(req, res, next) {
 async function show(req, res, next) {
   try {
     const user = await userService.getUserById(req.params.id);
-    ok(res, user, 'User retrieved successfully');
+    ok(res, user.toJSON(), 'User retrieved successfully');
   } catch (err) {
     next(err);
   }
@@ -22,7 +23,7 @@ async function show(req, res, next) {
 async function store(req, res, next) {
   try {
     const user = await userService.createUser(req.body);
-    created(res, user, 'User created successfully');
+    created(res, user.toJSON(), 'User created successfully');
   } catch (err) {
     next(err);
   }
@@ -31,7 +32,7 @@ async function store(req, res, next) {
 async function update(req, res, next) {
   try {
     const user = await userService.updateUser(req.params.id, req.body);
-    ok(res, user, 'User updated successfully');
+    ok(res, user.toJSON(), 'User updated successfully');
   } catch (err) {
     next(err);
   }
