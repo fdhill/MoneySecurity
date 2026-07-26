@@ -3,6 +3,8 @@ const cors = require('cors');
 const routes = require('./routes');
 const errorHandler = require('./middlewares/errorHandler');
 
+require('./jobs/budgetCron');
+
 const app = express();
 
 app.use(cors());
