@@ -14,10 +14,9 @@ async function findAll() {
 }
 
 async function findById(id) {
-  const { rows } = await pool.query(
-    `${SELECT_WITH_NAMES} WHERE t.id = $1`,
-    [id],
-  );
+  const { rows } = await pool.query(`${SELECT_WITH_NAMES} WHERE t.id = $1`, [
+    id,
+  ]);
   return rows[0] ? new Transaction(rows[0]) : null;
 }
 
@@ -61,6 +60,14 @@ async function update(id, { wallet_id, category_id, amount, type }) {
   return rows[0] ? new Transaction(rows[0]) : null;
 }
 
+async function sumExpenseByCategoryAndPeriod(category_id, start, end) {
+  const { rows } = await pool.query(
+    "SELECT COALESCE(SUM(amount), 0) AS total FROM transactions WHERE category_id = $1 AND type = 'expense' AND transaction_date BETWEEN $2 AND $3",
+    [category_id, start, end],
+  );
+  return Number(rows[0].total);
+}
+
 async function remove(id) {
   const { rowCount } = await pool.query(
     'DELETE FROM transactions WHERE id = $1',
@@ -75,5 +82,6 @@ module.exports = {
   findByUserId,
   create,
   update,
+  sumExpenseByCategoryAndPeriod,
   remove,
 };
