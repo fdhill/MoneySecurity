@@ -4,7 +4,7 @@ const { ok, created } = require('../utils/response');
 async function index(req, res, next) {
   try {
     const users = await userService.getAllUsers();
-    const json = users.map((c) => c.toJSON());
+    const json = users.map((u) => u.toJSON());
     ok(res, json, 'Users retrieved successfully');
   } catch (err) {
     next(err);
@@ -22,7 +22,7 @@ async function show(req, res, next) {
 
 async function store(req, res, next) {
   try {
-    const user = await userService.createUser(req.body);
+    const user = await userService.createUser(req.body, req.user);
     created(res, user.toJSON(), 'User created successfully');
   } catch (err) {
     next(err);

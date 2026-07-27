@@ -21,8 +21,12 @@ async function getUserById(id) {
   return user;
 }
 
-async function createUser({ name, whatsapp_number, password, role }) {
-  if (!name || !whatsapp_number || !password || !role) {
+async function createUser(data, user) {
+  if (!user || user.role != 1) {
+    data.role = 2;
+  }
+
+  if (!data.name || !data.whatsapp_number || !data.password || !data.role) {
     const err = new Error(
       'name, password, role, and whatsapp_number are required',
     );
@@ -30,19 +34,21 @@ async function createUser({ name, whatsapp_number, password, role }) {
     throw err;
   }
 
-  const existing = await userRepository.findByWhatsappNumber(whatsapp_number);
+  const existing = await userRepository.findByWhatsappNumber(
+    data.whatsapp_number,
+  );
   if (existing) {
     const err = new Error('whatsapp_number already used');
     err.status = 409;
     throw err;
   }
 
-  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+  const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
   return userRepository.create({
-    name,
-    whatsapp_number,
+    name: data.name,
+    whatsapp_number: data.whatsapp_number,
     password: hashedPassword,
-    role,
+    role: data.role,
   });
 }
 
@@ -65,8 +71,11 @@ async function updateProfile(user, { name, whatsapp_number }) {
     throw err;
   }
 
-  const updated = await userRepository.update(user.id, { name, whatsapp_number });
-  assertFound(user.id, updated);
+  const updated = await userRepository.update(user.id, {
+    name,
+    whatsapp_number,
+  });
+  assertFound(updated, user.id);
   return updated;
 }
 
