@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter, RouterView } from 'vue-router';
 import {
   LayoutDashboard, ArrowLeftRight, Wallet, Tag, Target,
   MessageCircle, Settings, Bell, Menu, Banknote,
@@ -116,7 +116,7 @@ function handleLogout() {
       </header>
 
       <main class="flex-1 overflow-y-auto px-5 py-5 md:px-6 md:py-6">
-        <slot />
+        <RouterView />
       </main>
     </div>
   </div>
