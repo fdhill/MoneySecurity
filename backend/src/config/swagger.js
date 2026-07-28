@@ -36,7 +36,6 @@ const options = {
           type: 'object',
           properties: {
             id: { type: 'integer', example: 1 },
-            user_id: { type: 'integer', example: 1 },
             name: { type: 'string', example: 'Food' },
             type: { type: 'string', enum: ['expense', 'income'], example: 'expense' },
           },
@@ -45,7 +44,6 @@ const options = {
           type: 'object',
           properties: {
             id: { type: 'integer', example: 1 },
-            user_id: { type: 'integer', example: 1 },
             name: { type: 'string', example: 'Cash' },
             balance: { type: 'number', example: 500000 },
           },
@@ -54,7 +52,6 @@ const options = {
           type: 'object',
           properties: {
             id: { type: 'integer', example: 1 },
-            user_id: { type: 'integer', example: 1 },
             wallet_id: { type: 'integer', example: 1 },
             wallet_name: { type: 'string', example: 'Cash' },
             category_id: { type: 'integer', example: 1 },
