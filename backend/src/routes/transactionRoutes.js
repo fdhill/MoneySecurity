@@ -62,7 +62,7 @@ router.get('/:id', transactionController.show);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [wallet_id, category_id, amount, type, transaction_date]
+ *             required: [wallet_id, category_id, amount, type]
  *             properties:
  *               wallet_id:
  *                 type: integer
@@ -84,6 +84,7 @@ router.get('/:id', transactionController.show);
  *                 type: string
  *                 format: date
  *                 example: 2026-07-28
+ *                 description: 'Defaults to today if not provided'
  *     responses:
  *       201:
  *         description: Transaction created successfully

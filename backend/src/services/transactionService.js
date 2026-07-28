@@ -59,7 +59,8 @@ async function createTransaction(data, user) {
     amount: data.amount,
     type: data.type,
     description: data.description,
-    transaction_date: data.transaction_date,
+    transaction_date:
+      data.transaction_date || new Date().toISOString().split('T')[0],
   });
 }
 

@@ -33,7 +33,7 @@ CREATE TABLE transactions (
   amount NUMERIC(14, 2) NOT NULL,
   type transaction_type NOT NULL,
   description VARCHAR(255),
-  transaction_date DATE NOT NULL,
+  transaction_date DATE NOT NULL DEFAULT CURRENT_DATE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
