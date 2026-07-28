@@ -12,7 +12,6 @@ class BudgetTemplate {
   toJSON() {
     return {
       id: this.id,
-      user_id: this.user_id,
       category_id: this.category_id,
       amount: this.amount,
       frequency: this.frequency,

@@ -71,11 +71,11 @@ async function updateProfile(user, { name, whatsapp_number }) {
     throw err;
   }
 
-  const updated = await userRepository.update(user.id, {
+  const updated = await userRepository.update(user.sub, {
     name,
     whatsapp_number,
   });
-  assertFound(updated, user.id);
+  assertFound(updated, user.sub);
   return updated;
 }
 

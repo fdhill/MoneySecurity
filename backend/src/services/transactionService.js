@@ -11,7 +11,7 @@ function assertFound(transaction, id) {
 }
 
 function assertOwnership(transaction, user) {
-  if (user.role != 1 && transaction.user_id != user.id) {
+  if (user.role != 1 && transaction.user_id != user.sub) {
     const err = new Error(
       'You do not have permission to access this transaction',
     );
@@ -24,7 +24,7 @@ async function getAllTransactions(user) {
   if (user.role == 1) {
     return transactionRepository.findAll();
   }
-  return transactionRepository.findByUserId(user.id);
+  return transactionRepository.findByUserId(user.sub);
 }
 
 async function getTransactionById(id, user) {
@@ -44,7 +44,7 @@ async function createTransaction(data, user) {
   const wallet = await walletRepository.findById(data.wallet_id);
   const category = await categoryRepository.findById(data.category_id);
 
-  if (wallet.user_id != user.id || category.user_id != user.id) {
+  if (wallet.user_id != user.sub || category.user_id != user.sub) {
     const err = new Error(
       'You do not have permission to access this category or wallet',
     );
@@ -53,7 +53,7 @@ async function createTransaction(data, user) {
   }
 
   return transactionRepository.create({
-    user_id: user.id,
+    user_id: user.sub,
     wallet_id: data.wallet_id,
     category_id: data.category_id,
     amount: data.amount,
@@ -78,7 +78,7 @@ async function updateTransaction(id, data, user) {
   const wallet = await walletRepository.findById(data.wallet_id);
   const category = await categoryRepository.findById(data.category_id);
 
-  if (wallet.user_id != user.id || category.user_id != user.id) {
+  if (wallet.user_id != user.sub || category.user_id != user.sub) {
     const err = new Error(
       'You do not have permission to access this category or wallet',
     );

@@ -33,7 +33,6 @@ class Transaction {
   toJSON() {
     return {
       id: this.id,
-      user_id: this.user_id,
       wallet_id: this.wallet_id,
       wallet_name: this.wallet_name,
       category_id: this.category_id,

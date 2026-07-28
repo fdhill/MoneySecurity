@@ -9,7 +9,7 @@ function assertFound(category, id) {
 }
 
 function assertOwnership(category, user) {
-  if (user.role != 1 && category.user_id != user.id) {
+  if (user.role != 1 && category.user_id != user.sub) {
     const err = new Error('You do not have permission to access this category');
     err.status = 403;
     throw err;
@@ -20,7 +20,7 @@ async function getAllCategories(user) {
   if (user.role == 1) {
     return categoryRepository.findAll();
   }
-  return categoryRepository.findByUserId(user.id);
+  return categoryRepository.findByUserId(user.sub);
 }
 
 async function getCategoryById(id, user) {
@@ -38,7 +38,7 @@ async function createCategory(data, user) {
   }
 
   return categoryRepository.create({
-    user_id: user.id,
+    user_id: user.sub,
     name: data.name,
     type: data.type,
   });

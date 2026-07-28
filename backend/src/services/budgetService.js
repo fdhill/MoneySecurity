@@ -11,7 +11,7 @@ function assertFound(data, id) {
 }
 
 function assertOwnership(data, user) {
-  if (user.role != 1 && data.user_id != user.id) {
+  if (user.role != 1 && data.user_id != user.sub) {
     const err = new Error('You do not have permission to access this resource');
     err.status = 403;
     throw err;
@@ -46,7 +46,7 @@ async function getAllTemplates(user) {
   if (user.role == 1) {
     return budgetTemplateRepository.findAll();
   }
-  return budgetTemplateRepository.findByUserId(user.id);
+  return budgetTemplateRepository.findByUserId(user.sub);
 }
 
 async function getTemplateById(id, user) {
@@ -64,7 +64,7 @@ async function createTemplate(data, user) {
   }
 
   return budgetTemplateRepository.create({
-    user_id: user.id,
+    user_id: user.sub,
     category_id: data.category_id,
     amount: data.amount,
     frequency: data.frequency,
@@ -86,7 +86,10 @@ async function updateTemplate(id, data, user) {
   const updated = await budgetTemplateRepository.update(id, {
     amount: data.amount,
     frequency: data.frequency,
-    is_recurring: data.is_recurring !== undefined ? data.is_recurring : template.is_recurring,
+    is_recurring:
+      data.is_recurring !== undefined
+        ? data.is_recurring
+        : template.is_recurring,
   });
   assertFound(updated, id);
   return updated;
@@ -111,7 +114,10 @@ async function getActiveInstance(template_id, user) {
   assertOwnership(template, user);
 
   const today = new Date().toISOString().split('T')[0];
-  let instance = await budgetInstanceRepository.findActiveByTemplateId(template_id, today);
+  let instance = await budgetInstanceRepository.findActiveByTemplateId(
+    template_id,
+    today,
+  );
 
   if (!instance) {
     const { period_start, period_end } = calculatePeriod(template.frequency);
@@ -129,7 +135,9 @@ async function getInstanceSummary(instance_id, user) {
   const instance = await budgetInstanceRepository.findById(instance_id);
   assertFound(instance, instance_id);
 
-  const template = await budgetTemplateRepository.findById(instance.template_id);
+  const template = await budgetTemplateRepository.findById(
+    instance.template_id,
+  );
   assertFound(template, instance.template_id);
   assertOwnership(template, user);
 
@@ -142,7 +150,10 @@ async function getInstanceSummary(instance_id, user) {
   const remaining = Number(template.amount) - spent;
   const today = new Date();
   const endDate = new Date(instance.period_end);
-  const days_left = Math.max(0, Math.ceil((endDate - today) / (1000 * 60 * 60 * 24)));
+  const days_left = Math.max(
+    0,
+    Math.ceil((endDate - today) / (1000 * 60 * 60 * 24)),
+  );
   const daily_estimate = days_left > 0 ? Math.round(remaining / days_left) : 0;
 
   return {

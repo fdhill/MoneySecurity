@@ -9,7 +9,7 @@ function assertFound(wallet, id) {
 }
 
 function assertOwnership(wallet, user) {
-  if (user.role != 1 && wallet.user_id != user.id) {
+  if (user.role != 1 && wallet.user_id != user.sub) {
     const err = new Error('You do not have permission to access this wallet');
     err.status = 403;
     throw err;
@@ -20,7 +20,7 @@ async function getAllWallets(user) {
   if (user.role == 1) {
     return walletRepository.findAll();
   }
-  return walletRepository.findByUserId(user.id);
+  return walletRepository.findByUserId(user.sub);
 }
 
 async function getWalletById(id, user) {
@@ -38,7 +38,7 @@ async function createWallet(data, user) {
   }
 
   return walletRepository.create({
-    user_id: user.id,
+    user_id: user.sub,
     name: data.name,
     balance: data.balance || 0,
   });
