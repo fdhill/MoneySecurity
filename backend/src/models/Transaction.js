@@ -33,10 +33,14 @@ class Transaction {
   toJSON() {
     return {
       id: this.id,
-      wallet_id: this.wallet_id,
-      wallet_name: this.wallet_name,
-      category_id: this.category_id,
-      category_name: this.category_name,
+      wallet: {
+        id: this.wallet_id,
+        name: this.wallet_name
+      },
+      category: {
+        id: this.category_id,
+        name: this.category_name
+      },
       amount: this.amount,
       type: this.type,
       description: this.description,
