@@ -20,6 +20,23 @@ function assertOwnership(transaction, user) {
   }
 }
 
+async function applyTransaction(wallet, amount, type) {
+  if (type === 'expense' && Number(wallet.balance) < Number(amount)) {
+    const err = new Error(
+      `you don't have enough money in your ${wallet.name} wallet`,
+    );
+    err.status = 402;
+    throw err;
+  }
+
+  const newBalance =
+    type === 'expense'
+      ? Number(wallet.balance) - Number(amount)
+      : Number(wallet.balance) + Number(amount);
+
+  return walletRepository.updateBalance(wallet.id, { balance: newBalance });
+}
+
 async function getAllTransactions(user) {
   if (user.role == 1) {
     return transactionRepository.findAll();
@@ -51,6 +68,8 @@ async function createTransaction(data, user) {
     err.status = 403;
     throw err;
   }
+  
+  await applyTransaction(wallet, data.amount, data.type);
 
   return transactionRepository.create({
     user_id: user.sub,
