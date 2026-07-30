@@ -21,7 +21,9 @@ function assertOwnership(transaction, user) {
 }
 
 async function applyTransaction(wallet, amount, type) {
-  if (type === 'expense' && Number(wallet.balance) < Number(amount)) {
+  const delta = type === 'expense' ? Number(amount) : -Number(amount);
+
+  if (delta > 0 && Number(wallet.balance) < delta) {
     const err = new Error(
       `you don't have enough money in your ${wallet.name} wallet`,
     );
@@ -29,12 +31,37 @@ async function applyTransaction(wallet, amount, type) {
     throw err;
   }
 
-  const newBalance =
-    type === 'expense'
-      ? Number(wallet.balance) - Number(amount)
-      : Number(wallet.balance) + Number(amount);
+  return walletRepository.deductBalance(wallet.id, delta);
+}
 
-  return walletRepository.updateBalance(wallet.id, { balance: newBalance });
+async function reverseTransaction(old_transaction, new_transaction) {
+  const oldAmt = Number(old_transaction.amount);
+  const newAmt = Number(new_transaction.amount);
+
+  const oldEffect = old_transaction.type === 'expense' ? -oldAmt : oldAmt;
+  const newEffect = new_transaction.type === 'expense' ? -newAmt : newAmt;
+  const delta = newEffect - oldEffect;
+
+  if (old_transaction.wallet_id === new_transaction.wallet_id) {
+    const wallet = await walletRepository.findById(old_transaction.wallet_id);
+
+    if (delta < 0 && Number(wallet.balance) < -delta) {
+      const err = new Error(
+        `you don't have enough money in your ${wallet.name} wallet`,
+      );
+      err.status = 402;
+      throw err;
+    }
+
+    return walletRepository.deductBalance(wallet.id, -delta);
+  }
+
+  const oldWallet = await walletRepository.findById(old_transaction.wallet_id);
+  const oldReverse = old_transaction.type === 'expense' ? -oldAmt : oldAmt;
+  await walletRepository.deductBalance(oldWallet.id, oldReverse);
+
+  const newWallet = await walletRepository.findById(new_transaction.wallet_id);
+  return applyTransaction(newWallet, newAmt, new_transaction.type);
 }
 
 async function getAllTransactions(user) {
@@ -68,14 +95,14 @@ async function createTransaction(data, user) {
     err.status = 403;
     throw err;
   }
-    if(category.type != data.type){
+  if (category.type != data.type) {
     const err = new Error(
       `Category ${category.name} is an ${category.type} category, but transaction type is set to ${data.type}`,
     );
     err.status = 400;
     throw err;
   }
-  
+
   await applyTransaction(wallet, data.amount, data.type);
 
   return transactionRepository.create({
@@ -111,12 +138,22 @@ async function updateTransaction(id, data, user) {
     err.status = 403;
     throw err;
   }
+  if (category.type != data.type) {
+    const err = new Error(
+      `Category ${category.name} is an ${category.type} category, but transaction type is set to ${data.type}`,
+    );
+    err.status = 400;
+    throw err;
+  }
+
+  await reverseTransaction(transaction, data);
 
   const updated = await transactionRepository.update(id, {
     wallet_id: data.wallet_id,
     category_id: data.category_id,
     amount: data.amount,
     type: data.type,
+    description: data.description,
   });
   assertFound(updated, id);
   return updated;

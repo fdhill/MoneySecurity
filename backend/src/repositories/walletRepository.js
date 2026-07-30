@@ -37,11 +37,15 @@ async function update(id, { name, balance }) {
   return rows[0] ? new Wallet(rows[0]) : null;
 }
 
-async function updateBalance(id, { balance }) {
+async function deductBalance(id, amount) {
   const { rows } = await pool.query(
-    'UPDATE wallets SET balance = $1 WHERE id = $2 RETURNING *',
-    [balance, id],
+    `UPDATE wallets 
+     SET balance = balance - $1 
+     WHERE id = $2 AND balance >= $1 
+     RETURNING *`,
+    [amount, id]
   );
+  
   return rows[0] ? new Wallet(rows[0]) : null;
 }
 
@@ -58,6 +62,6 @@ module.exports = {
   findByUserId,
   create,
   update,
-  updateBalance,
+  deductBalance,
   remove,
 };
