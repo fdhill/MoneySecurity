@@ -34,7 +34,7 @@ async function applyTransaction(wallet, amount, type) {
   return walletRepository.deductBalance(wallet.id, delta);
 }
 
-async function reverseTransaction(old_transaction, new_transaction) {
+async function reverseTransaction(old_transaction, new_transaction, newWallet) {
   const oldAmt = Number(old_transaction.amount);
   const newAmt = Number(new_transaction.amount);
 
@@ -43,24 +43,20 @@ async function reverseTransaction(old_transaction, new_transaction) {
   const delta = newEffect - oldEffect;
 
   if (old_transaction.wallet_id === new_transaction.wallet_id) {
-    const wallet = await walletRepository.findById(old_transaction.wallet_id);
-
-    if (delta < 0 && Number(wallet.balance) < -delta) {
+    if (delta < 0 && Number(newWallet.balance) < -delta) {
       const err = new Error(
-        `you don't have enough money in your ${wallet.name} wallet`,
+        `you don't have enough money in your ${newWallet.name} wallet`,
       );
       err.status = 402;
       throw err;
     }
 
-    return walletRepository.deductBalance(wallet.id, -delta);
+    return walletRepository.deductBalance(newWallet.id, -delta);
   }
 
   const oldWallet = await walletRepository.findById(old_transaction.wallet_id);
-  const oldReverse = old_transaction.type === 'expense' ? -oldAmt : oldAmt;
-  await walletRepository.deductBalance(oldWallet.id, oldReverse);
+  await walletRepository.deductBalance(oldWallet.id, oldEffect);
 
-  const newWallet = await walletRepository.findById(new_transaction.wallet_id);
   return applyTransaction(newWallet, newAmt, new_transaction.type);
 }
 
@@ -146,7 +142,7 @@ async function updateTransaction(id, data, user) {
     throw err;
   }
 
-  await reverseTransaction(transaction, data);
+  await reverseTransaction(transaction, data, wallet);
 
   const updated = await transactionRepository.update(id, {
     wallet_id: data.wallet_id,
