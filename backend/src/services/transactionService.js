@@ -68,6 +68,13 @@ async function createTransaction(data, user) {
     err.status = 403;
     throw err;
   }
+    if(category.type != data.type){
+    const err = new Error(
+      `Category ${category.name} is an ${category.type} category, but transaction type is set to ${data.type}`,
+    );
+    err.status = 400;
+    throw err;
+  }
   
   await applyTransaction(wallet, data.amount, data.type);
 
