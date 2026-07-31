@@ -45,8 +45,8 @@ async function createCategory(data, user) {
 }
 
 async function updateCategory(id, data, user) {
-  if (!data.name) {
-    const err = new Error('name is required');
+  if (!data.name || !data.type) {
+    const err = new Error('name and type are required');
     err.status = 400;
     throw err;
   }
@@ -55,7 +55,10 @@ async function updateCategory(id, data, user) {
   assertFound(category, id);
   assertOwnership(category, user);
 
-  const updated = await categoryRepository.update(id, { name: data.name });
+  const updated = await categoryRepository.update(id, {
+    name: data.name,
+    type: data.type,
+  });
   assertFound(updated, id);
   return updated;
 }

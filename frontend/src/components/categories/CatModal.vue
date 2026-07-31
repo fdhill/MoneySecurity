@@ -14,7 +14,7 @@ const color = ref(props.editing?._color || COLORS[0]);
 function submit(e) {
   e.preventDefault();
   if (!name.value.trim()) return;
-  emit('save', { name: name.value.trim(), type: type.value, _color: color.value });
+  emit('save', { name: name.value.trim(), type: type.value });
 }
 </script>
 

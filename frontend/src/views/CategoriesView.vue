@@ -68,7 +68,7 @@
       </div>
     </div>
 
-    <CatModal v-if="showModal" :category="editingCategory" @close="showModal = false" @saved="onSaved" />
+    <CatModal v-if="showModal" :editing="editingCategory" @close="showModal = false" @save="onSaved" />
   </div>
 </template>
 

@@ -12,7 +12,7 @@ const loading = ref(true)
 const showModal = ref(false)
 const editingBudget = ref(null)
 
-const FREQUENCY_LABELS = { daily: 'Harian', weekly: 'Mingguan', monthly: 'Bulanan', yearly: 'Tahunan' }
+const FREQUENCY_LABELS = { weekly: 'Mingguan', monthly: 'Bulanan', yearly: 'Tahunan' }
 
 const CATEGORY_DEFAULTS = {
   'Makanan': { icon: 'utensils', color: '#f59e0b' },
@@ -103,7 +103,7 @@ async function fetchData() {
       api.get('/categories'),
     ])
     budgets.value = budRes.data || []
-    transactions.value = txRes.data || []
+    transactions.value = (txRes.data || []).map(t => ({ ...t, category_id: t.category?.id, wallet_id: t.wallet?.id }))
     categories.value = catRes.data || []
   } catch (e) {
     console.error('Fetch error:', e)

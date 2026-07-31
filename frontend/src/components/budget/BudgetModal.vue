@@ -11,12 +11,11 @@ const props = defineProps({
 const emit = defineEmits(['save', 'close'])
 
 const frequencyMap = {
-  daily: 'Harian',
   weekly: 'Mingguan',
   monthly: 'Bulanan',
   yearly: 'Tahunan'
 }
-const frequencyKeys = ['daily', 'weekly', 'monthly', 'yearly']
+const frequencyKeys = ['weekly', 'monthly', 'yearly']
 
 const selectedCategoryId = ref(props.editing?.category_id ?? null)
 const amount = ref(props.editing?.amount ?? '')
@@ -111,7 +110,7 @@ function save() {
         <!-- Frequency -->
         <div>
           <label class="block text-sm font-medium text-gray-600 mb-1.5">Frekuensi</label>
-          <div class="grid grid-cols-4 gap-2">
+          <div class="grid grid-cols-3 gap-2">
             <button
               v-for="key in frequencyKeys"
               :key="key"

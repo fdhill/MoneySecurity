@@ -43,7 +43,7 @@ async function fetchData() {
   try {
     const [walRes, txRes] = await Promise.all([api.get('/wallets'), api.get('/transactions')]);
     wallets.value = walRes.data || [];
-    transactions.value = txRes.data || [];
+    transactions.value = (txRes.data || []).map(t => ({ ...t, category_id: t.category?.id, wallet_id: t.wallet?.id }));
   } catch (e) {
     console.error(e);
   } finally {

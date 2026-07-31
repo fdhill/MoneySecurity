@@ -21,7 +21,7 @@ async function fetchData() {
   loading.value = true;
   try {
     const [txRes, catRes, walRes] = await Promise.all([api.get('/transactions'), api.get('/categories'), api.get('/wallets')]);
-    transactions.value = txRes.data || [];
+    transactions.value = (txRes.data || []).map(t => ({ ...t, category_id: t.category?.id, wallet_id: t.wallet?.id }));
     categories.value = (catRes.data || []).map((c, i) => ({ ...c, _color: ['#f59e0b','#3b82f6','#10b981','#8b5cf6','#ec4899','#0ea5e9','#ef4444','#f97316','#92400e','#6366f1'][i % 10], _iconName: ['utensils','car','briefcase','music','shopping','graduation','heart','zap','coffee','home'][i % 10] }));
     wallets.value = walRes.data || [];
   } catch (e) { console.error(e); } finally { loading.value = false; }

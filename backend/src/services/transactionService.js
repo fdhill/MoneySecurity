@@ -150,6 +150,8 @@ async function updateTransaction(id, data, user) {
     amount: data.amount,
     type: data.type,
     description: data.description,
+    transaction_date:
+      data.transaction_date || transaction.transaction_date,
   });
   assertFound(updated, id);
   return updated;

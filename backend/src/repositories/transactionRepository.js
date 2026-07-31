@@ -52,10 +52,10 @@ async function create({
   return new Transaction(rows[0]);
 }
 
-async function update(id, { wallet_id, category_id, amount, type, description }) {
+async function update(id, { wallet_id, category_id, amount, type, description, transaction_date }) {
   const { rows } = await pool.query(
-    'UPDATE transactions SET wallet_id = $1, category_id = $2, amount = $3, type = $4, description = $5 WHERE id = $5 RETURNING *',
-    [wallet_id, category_id, amount, type, description, id],
+    'UPDATE transactions SET wallet_id = $1, category_id = $2, amount = $3, type = $4, description = $5, transaction_date = $6 WHERE id = $7 RETURNING *',
+    [wallet_id, category_id, amount, type, description, transaction_date, id],
   );
   return rows[0] ? new Transaction(rows[0]) : null;
 }

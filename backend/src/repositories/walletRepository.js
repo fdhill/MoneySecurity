@@ -49,6 +49,14 @@ async function deductBalance(id, amount) {
   return rows[0] ? new Wallet(rows[0]) : null;
 }
 
+async function updateBalance(id, { balance }) {
+  const { rows } = await pool.query(
+    'UPDATE wallets SET balance = $1 WHERE id = $2 RETURNING *',
+    [balance, id],
+  );
+  return rows[0] ? new Wallet(rows[0]) : null;
+}
+
 async function remove(id) {
   const { rowCount } = await pool.query('DELETE FROM wallets WHERE id = $1', [
     id,
@@ -63,5 +71,6 @@ module.exports = {
   create,
   update,
   deductBalance,
+  updateBalance,
   remove,
 };

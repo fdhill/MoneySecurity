@@ -18,7 +18,7 @@ const icon = ref(props.editing?.icon || 'banknote');
 function submit(e) {
   e.preventDefault();
   if (!name.value.trim()) return;
-  emit('save', { name: name.value.trim(), balance: parseFloat(balance.value.replace(/\D/g, '')) || 0, color: color.value, icon: icon.value });
+  emit('save', { name: name.value.trim(), balance: parseFloat(balance.value.replace(/\D/g, '')) || 0 });
 }
 </script>
 

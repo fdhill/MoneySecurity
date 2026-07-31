@@ -29,10 +29,10 @@ async function create({ user_id, name, type }) {
   return new Category(rows[0]);
 }
 
-async function update(id, { name }) {
+async function update(id, { name, type }) {
   const { rows } = await pool.query(
-    'UPDATE categories SET name = $1 WHERE id = $2 RETURNING *',
-    [name, id],
+    'UPDATE categories SET name = $1, type = $2 WHERE id = $3 RETURNING *',
+    [name, type, id],
   );
   return rows[0] ? new Category(rows[0]) : null;
 }
