@@ -4,7 +4,9 @@ import { Plus, Download, Search, Edit2, Trash2, Briefcase } from '@lucide/vue';
 import TxModal from '@/components/transactions/TxModal.vue';
 import CategoryBadge from '@/components/common/CategoryBadge.vue';
 import { formatIDR, formatShort } from '@/components/common/icons';
-import api from '@/services/api';
+import { transactionService } from '@/services/transactionService';
+import { categoryService } from '@/services/categoryService';
+import { walletService } from '@/services/walletService';
 
 const transactions = ref([]);
 const categories = ref([]);
@@ -20,7 +22,7 @@ const editingTx = ref(null);
 async function fetchData() {
   loading.value = true;
   try {
-    const [txRes, catRes, walRes] = await Promise.all([api.get('/transactions'), api.get('/categories'), api.get('/wallets')]);
+    const [txRes, catRes, walRes] = await Promise.all([transactionService.list(), categoryService.list(), walletService.list()]);
     transactions.value = (txRes.data || []).map(t => ({ ...t, category_id: t.category?.id, wallet_id: t.wallet?.id }));
     categories.value = (catRes.data || []).map((c, i) => ({ ...c, _color: ['#f59e0b','#3b82f6','#10b981','#8b5cf6','#ec4899','#0ea5e9','#ef4444','#f97316','#92400e','#6366f1'][i % 10], _iconName: ['utensils','car','briefcase','music','shopping','graduation','heart','zap','coffee','home'][i % 10] }));
     wallets.value = walRes.data || [];
@@ -41,10 +43,10 @@ const filtered = computed(() => {
 function openAdd() { editingTx.value = null; showTxModal.value = true; }
 function openEdit(tx) { editingTx.value = tx; showTxModal.value = true; }
 function saveTx(data) {
-  const p = editingTx.value ? api.put(`/transactions/${editingTx.value.id}`, data) : api.post('/transactions', data);
+  const p = editingTx.value ? transactionService.update(editingTx.value.id, data) : transactionService.create(data);
   p.then(() => { showTxModal.value = false; editingTx.value = null; fetchData(); });
 }
-function deleteTx(id) { if (confirm('Hapus transaksi ini?')) api.delete(`/transactions/${id}`).then(fetchData); }
+function deleteTx(id) { if (confirm('Hapus transaksi ini?')) transactionService.remove(id).then(fetchData); }
 
 function getCatById(id) { return categories.value.find(c => c.id === id); }
 function getWalById(id) { return wallets.value.find(w => w.id === id); }

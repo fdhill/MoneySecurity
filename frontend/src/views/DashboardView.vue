@@ -7,7 +7,10 @@ import StatCard from '@/components/dashboard/StatCard.vue';
 import BudgetWidget from '@/components/dashboard/BudgetWidget.vue';
 import TxModal from '@/components/transactions/TxModal.vue';
 import { formatShort, formatIDR } from '@/components/common/icons';
-import api from '@/services/api';
+import { transactionService } from '@/services/transactionService';
+import { categoryService } from '@/services/categoryService';
+import { walletService } from '@/services/walletService';
+import { budgetService } from '@/services/budgetService';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, ChartTooltip, ChartLegend);
 
@@ -35,7 +38,7 @@ function getWalletColor(i) { return ['#10b981', '#2563eb', '#00aed6', '#ee4d2d']
 async function fetchData() {
   loading.value = true;
   try {
-    const [txRes, catRes, walRes, budRes] = await Promise.all([api.get('/transactions'), api.get('/categories'), api.get('/wallets'), api.get('/budgets')]);
+    const [txRes, catRes, walRes, budRes] = await Promise.all([transactionService.list(), categoryService.list(), walletService.list(), budgetService.list()]);
     transactions.value = (txRes.data || []).map(t => ({ ...t, category_id: t.category?.id, wallet_id: t.wallet?.id }));
     categories.value = (catRes.data || []).map((c, i) => ({ ...c, _color: getCatColor(c, i), _iconName: getCatIconName(c) }));
     wallets.value = walRes.data || [];
@@ -141,7 +144,7 @@ watch([areaChartData, pieChartData], syncCharts);
 
 const recentTx = computed(() => [...transactions.value].sort((a, b) => (b.transaction_date || '').localeCompare(a.transaction_date || '')).slice(0, 5));
 
-function saveTx(data) { api.post('/transactions', data).then(() => { showTxModal.value = false; fetchData(); }); }
+function saveTx(data) { transactionService.create(data).then(() => { showTxModal.value = false; fetchData(); }); }
 </script>
 
 <template>

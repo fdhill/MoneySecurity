@@ -3,7 +3,9 @@ import { ref, computed, onMounted } from 'vue'
 import { Plus, Edit2, Trash2, Target, Sparkles, Check, Flame } from '@lucide/vue'
 import BudgetModal from '@/components/budget/BudgetModal.vue'
 import { formatIDR, formatShort } from '@/components/common/icons'
-import api from '@/services/api'
+import { budgetService } from '@/services/budgetService'
+import { transactionService } from '@/services/transactionService'
+import { categoryService } from '@/services/categoryService'
 
 const budgets = ref([])
 const transactions = ref([])
@@ -98,9 +100,9 @@ async function fetchData() {
   loading.value = true
   try {
     const [budRes, txRes, catRes] = await Promise.all([
-      api.get('/budgets'),
-      api.get('/transactions'),
-      api.get('/categories'),
+      budgetService.list(),
+      transactionService.list(),
+      categoryService.list(),
     ])
     budgets.value = budRes.data || []
     transactions.value = (txRes.data || []).map(t => ({ ...t, category_id: t.category?.id, wallet_id: t.wallet?.id }))
@@ -125,9 +127,9 @@ function openEdit(b) {
 async function saveBudget(data) {
   try {
     if (editingBudget.value) {
-      await api.put(`/budgets/${editingBudget.value.id}`, data)
+      await budgetService.update(editingBudget.value.id, data)
     } else {
-      await api.post('/budgets', data)
+      await budgetService.create(data)
     }
     showModal.value = false
     editingBudget.value = null
@@ -139,7 +141,7 @@ async function saveBudget(data) {
 async function deleteBudget(id) {
   if (!confirm('Hapus template anggaran ini?')) return
   try {
-    await api.delete(`/budgets/${id}`)
+    await budgetService.remove(id)
     fetchData()
   } catch (e) {
     console.error('Delete error:', e)

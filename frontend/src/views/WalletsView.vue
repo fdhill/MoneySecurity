@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { Plus, Edit2, Trash2, Banknote } from '@lucide/vue';
 import WalletModal from '@/components/wallets/WalletModal.vue';
 import { formatIDR } from '@/components/common/icons';
-import api from '@/services/api';
+import { walletService } from '@/services/walletService';
 
 const wallets = ref([]);
 const loading = ref(true);
@@ -21,7 +21,7 @@ function getWalletColor(index) {
 async function fetchData() {
   loading.value = true;
   try {
-    const walRes = await api.get('/wallets');
+    const walRes = await walletService.list();
     wallets.value = walRes.data || [];
   } catch (e) {
     console.error(e);
@@ -44,8 +44,8 @@ function openEdit(w) {
 
 function saveWallet(data) {
   const p = editingWallet.value
-    ? api.put(`/wallets/${editingWallet.value.id}`, data)
-    : api.post('/wallets', data);
+    ? walletService.update(editingWallet.value.id, data)
+    : walletService.create(data);
   p.then(() => {
     showWalletModal.value = false;
     editingWallet.value = null;
@@ -55,7 +55,7 @@ function saveWallet(data) {
 
 function deleteWallet(id) {
   if (confirm('Hapus dompet ini? Semua transaksi terkait akan terpengaruh.')) {
-    api.delete(`/wallets/${id}`).then(fetchData);
+    walletService.remove(id).then(fetchData);
   }
 }
 </script>

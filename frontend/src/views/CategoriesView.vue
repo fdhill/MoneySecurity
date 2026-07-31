@@ -57,7 +57,7 @@
 import { ref, onMounted } from 'vue'
 import { Plus, Edit2, Trash2, Briefcase } from '@lucide/vue'
 import CatModal from '@/components/categories/CatModal.vue'
-import api from '@/services/api'
+import { categoryService } from '@/services/categoryService'
 
 const categories = ref([])
 const loading = ref(true)
@@ -77,9 +77,9 @@ function openModal(category) {
 async function saveCategory(data) {
   try {
     if (editingCategory.value) {
-      await api.put(`/categories/${editingCategory.value.id}`, data)
+      await categoryService.update(editingCategory.value.id, data)
     } else {
-      await api.post('/categories', data)
+      await categoryService.create(data)
     }
     showModal.value = false
     editingCategory.value = null
@@ -92,7 +92,7 @@ async function saveCategory(data) {
 async function deleteCategory(cat) {
   if (!confirm(`Hapus kategori "${cat.name}"?`)) return
   try {
-    await api.delete(`/categories/${cat.id}`)
+    await categoryService.remove(cat.id)
     await fetchData()
   } catch (e) {
     console.error('Gagal menghapus kategori', e)
@@ -102,7 +102,7 @@ async function deleteCategory(cat) {
 async function fetchData() {
   loading.value = true
   try {
-    const catRes = await api.get('/categories')
+    const catRes = await categoryService.list()
     categories.value = catRes.data
   } catch (e) {
     console.error('Gagal memuat data', e)
