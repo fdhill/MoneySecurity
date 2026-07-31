@@ -1,9 +1,8 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { Plus, Banknote, Utensils, Car, Briefcase, Music, ShoppingBag, GraduationCap, Heart, Home, Zap, Coffee } from '@lucide/vue';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, Tooltip as ChartTooltip, Legend as ChartLegend } from 'chart.js';
-import { Bar, Doughnut } from 'vue-chartjs';
 import StatCard from '@/components/dashboard/StatCard.vue';
 import BudgetWidget from '@/components/dashboard/BudgetWidget.vue';
 import TxModal from '@/components/transactions/TxModal.vue';
@@ -19,6 +18,10 @@ const wallets = ref([]);
 const budgets = ref([]);
 const loading = ref(true);
 const showTxModal = ref(false);
+const cashChartEl = ref(null);
+const pieChartEl = ref(null);
+let cashChart = null;
+let pieChart = null;
 
 const ICON_COMPONENTS = { utensils: Utensils, car: Car, briefcase: Briefcase, music: Music, shopping: ShoppingBag, graduation: GraduationCap, heart: Heart, home: Home, zap: Zap, coffee: Coffee };
 const CATEGORY_DEFAULTS = { 'Makanan': { icon: 'utensils', color: '#f59e0b' }, 'Transportasi': { icon: 'car', color: '#3b82f6' }, 'Gaji': { icon: 'briefcase', color: '#10b981' }, 'Hiburan': { icon: 'music', color: '#8b5cf6' }, 'Belanja': { icon: 'shopping', color: '#ec4899' }, 'Pendidikan': { icon: 'graduation', color: '#0ea5e9' }, 'Kesehatan': { icon: 'heart', color: '#ef4444' }, 'Utilitas': { icon: 'zap', color: '#f97316' }, 'Kopi & Cafe': { icon: 'coffee', color: '#92400e' }, 'Sewa': { icon: 'home', color: '#6366f1' } };
@@ -40,7 +43,48 @@ async function fetchData() {
   } catch (e) { console.error('Fetch error:', e); } finally { loading.value = false; }
 }
 
-onMounted(fetchData);
+async function syncCharts() {
+  await nextTick();
+  if (cashChartEl.value && !cashChart) {
+    try {
+      cashChart = new ChartJS(cashChartEl.value, { type: 'bar', data: areaChartData.value, options: lineChartOptions });
+    } catch (e) { console.error('Gagal membuat chart arus kas', e); }
+  }
+  if (cashChart) {
+    cashChart.data = areaChartData.value;
+    cashChart.update();
+  }
+  if (pieData.value.length === 0) {
+    if (pieChart) {
+      try { pieChart.destroy(); } catch (e) { console.error('Gagal destroy chart kategori', e); }
+      pieChart = null;
+    }
+    return;
+  }
+  if (pieChartEl.value && !pieChart) {
+    try {
+      pieChart = new ChartJS(pieChartEl.value, { type: 'doughnut', data: pieChartData.value, options: pieChartOptions });
+    } catch (e) { console.error('Gagal membuat chart kategori', e); }
+  }
+  if (pieChart) {
+    pieChart.data = pieChartData.value;
+    pieChart.update();
+  }
+}
+
+onMounted(() => {
+  fetchData();
+  syncCharts();
+});
+
+watch(loading, (v) => { if (!v) syncCharts(); });
+
+onBeforeUnmount(() => {
+  try { cashChart?.destroy(); } catch (e) { console.error('Gagal destroy chart arus kas', e); }
+  try { pieChart?.destroy(); } catch (e) { console.error('Gagal destroy chart kategori', e); }
+  cashChart = null;
+  pieChart = null;
+});
 
 const now = new Date();
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -93,6 +137,8 @@ const pieChartOptions = {
   plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, usePointStyle: true, pointStyle: 'circle', padding: 12, boxWidth: 8 } }, tooltip: { callbacks: { label: (ctx) => formatIDR(ctx.raw) } } },
 };
 
+watch([areaChartData, pieChartData], syncCharts);
+
 const recentTx = computed(() => [...transactions.value].sort((a, b) => (b.transaction_date || '').localeCompare(a.transaction_date || '')).slice(0, 5));
 
 function saveTx(data) { api.post('/transactions', data).then(() => { showTxModal.value = false; fetchData(); }); }
@@ -127,13 +173,13 @@ function saveTx(data) { api.post('/transactions', data).then(() => { showTxModal
             </div>
           </div>
           <div style="height: 200px;">
-            <Bar :data="areaChartData" :options="lineChartOptions" />
+            <canvas ref="cashChartEl" />
           </div>
         </div>
         <div class="bg-card rounded-2xl p-5 border border-border shadow-sm">
           <h3 class="text-sm font-semibold text-foreground mb-5">Pengeluaran per Kategori</h3>
           <div v-if="pieData.length > 0" style="height: 200px;">
-            <Doughnut :data="pieChartData" :options="pieChartOptions" />
+            <canvas ref="pieChartEl" />
           </div>
           <div v-else class="flex items-center justify-center h-[200px] text-muted-foreground text-sm">Belum ada data</div>
         </div>

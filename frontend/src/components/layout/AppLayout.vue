@@ -116,7 +116,9 @@ function handleLogout() {
       </header>
 
       <main class="flex-1 overflow-y-auto px-5 py-5 md:px-6 md:py-6">
-        <RouterView />
+        <RouterView v-slot="{ Component }">
+          <component :is="Component" :key="$route.fullPath" />
+        </RouterView>
       </main>
     </div>
   </div>
