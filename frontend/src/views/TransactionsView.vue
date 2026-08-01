@@ -7,6 +7,9 @@ import { formatIDR, formatShort } from '@/components/common/icons';
 import { transactionService } from '@/services/transactionService';
 import { categoryService } from '@/services/categoryService';
 import { walletService } from '@/services/walletService';
+import { useToast } from '@/composables/useToast';
+
+const { showToast } = useToast();
 
 const transactions = ref([]);
 const categories = ref([]);
@@ -44,9 +47,21 @@ function openAdd() { editingTx.value = null; showTxModal.value = true; }
 function openEdit(tx) { editingTx.value = tx; showTxModal.value = true; }
 function saveTx(data) {
   const p = editingTx.value ? transactionService.update(editingTx.value.id, data) : transactionService.create(data);
-  p.then(() => { showTxModal.value = false; editingTx.value = null; fetchData(); });
+  p.then((res) => {
+    showToast(res?.message, 'success');
+    showTxModal.value = false;
+    editingTx.value = null;
+    fetchData();
+  }).catch((e) => showToast(e?.message, 'error'));
 }
-function deleteTx(id) { if (confirm('Hapus transaksi ini?')) transactionService.remove(id).then(fetchData); }
+function deleteTx(id) {
+  if (confirm('Hapus transaksi ini?')) {
+    transactionService.remove(id).then((res) => {
+      showToast(res?.message, 'success');
+      fetchData();
+    }).catch((e) => showToast(e?.message, 'error'));
+  }
+}
 
 function getCatById(id) { return categories.value.find(c => c.id === id); }
 function getWalById(id) { return wallets.value.find(w => w.id === id); }

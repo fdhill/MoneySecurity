@@ -11,6 +11,9 @@ import { transactionService } from '@/services/transactionService';
 import { categoryService } from '@/services/categoryService';
 import { walletService } from '@/services/walletService';
 import { budgetService } from '@/services/budgetService';
+import { useToast } from '@/composables/useToast';
+
+const { showToast } = useToast();
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, ChartTooltip, ChartLegend, LineController, DoughnutController);
 
@@ -161,7 +164,13 @@ watch([areaChartData, pieChartData], syncCharts);
 
 const recentTx = computed(() => [...transactions.value].sort((a, b) => (b.transaction_date || '').localeCompare(a.transaction_date || '')).slice(0, 5));
 
-function saveTx(data) { transactionService.create(data).then(() => { showTxModal.value = false; fetchData(); }); }
+function saveTx(data) {
+  transactionService.create(data).then((res) => {
+    showToast(res?.message, 'success');
+    showTxModal.value = false;
+    fetchData();
+  }).catch((e) => showToast(e?.message, 'error'));
+}
 </script>
 
 <template>

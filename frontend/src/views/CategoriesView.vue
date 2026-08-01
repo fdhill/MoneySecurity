@@ -58,6 +58,9 @@ import { ref, onMounted } from 'vue'
 import { Plus, Edit2, Trash2, Briefcase } from '@lucide/vue'
 import CatModal from '@/components/categories/CatModal.vue'
 import { categoryService } from '@/services/categoryService'
+import { useToast } from '@/composables/useToast'
+
+const { showToast } = useToast()
 
 const categories = ref([])
 const loading = ref(true)
@@ -76,26 +79,26 @@ function openModal(category) {
 
 async function saveCategory(data) {
   try {
-    if (editingCategory.value) {
-      await categoryService.update(editingCategory.value.id, data)
-    } else {
-      await categoryService.create(data)
-    }
+    const res = editingCategory.value
+      ? await categoryService.update(editingCategory.value.id, data)
+      : await categoryService.create(data)
+    showToast(res?.message, 'success')
     showModal.value = false
     editingCategory.value = null
     await fetchData()
   } catch (e) {
-    console.error('Gagal menyimpan kategori', e)
+    showToast(e?.message, 'error')
   }
 }
 
 async function deleteCategory(cat) {
   if (!confirm(`Hapus kategori "${cat.name}"?`)) return
   try {
-    await categoryService.remove(cat.id)
+    const res = await categoryService.remove(cat.id)
+    showToast(res?.message, 'success')
     await fetchData()
   } catch (e) {
-    console.error('Gagal menghapus kategori', e)
+    showToast(e?.message, 'error')
   }
 }
 

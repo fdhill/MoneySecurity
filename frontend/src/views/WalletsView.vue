@@ -4,6 +4,9 @@ import { Plus, Edit2, Trash2, Banknote } from '@lucide/vue';
 import WalletModal from '@/components/wallets/WalletModal.vue';
 import { formatIDR } from '@/components/common/icons';
 import { walletService } from '@/services/walletService';
+import { useToast } from '@/composables/useToast';
+
+const { showToast } = useToast();
 
 const wallets = ref([]);
 const loading = ref(true);
@@ -46,16 +49,20 @@ function saveWallet(data) {
   const p = editingWallet.value
     ? walletService.update(editingWallet.value.id, data)
     : walletService.create(data);
-  p.then(() => {
+  p.then((res) => {
+    showToast(res?.message, 'success');
     showWalletModal.value = false;
     editingWallet.value = null;
     fetchData();
-  });
+  }).catch((e) => showToast(e?.message, 'error'));
 }
 
 function deleteWallet(id) {
   if (confirm('Hapus dompet ini? Semua transaksi terkait akan terpengaruh.')) {
-    walletService.remove(id).then(fetchData);
+    walletService.remove(id).then((res) => {
+      showToast(res?.message, 'success');
+      fetchData();
+    }).catch((e) => showToast(e?.message, 'error'));
   }
 }
 </script>

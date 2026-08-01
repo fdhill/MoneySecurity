@@ -6,6 +6,9 @@ import { formatIDR, formatShort } from '@/components/common/icons'
 import { budgetService } from '@/services/budgetService'
 import { transactionService } from '@/services/transactionService'
 import { categoryService } from '@/services/categoryService'
+import { useToast } from '@/composables/useToast'
+
+const { showToast } = useToast()
 
 const budgets = ref([])
 const transactions = ref([])
@@ -126,25 +129,25 @@ function openEdit(b) {
 }
 async function saveBudget(data) {
   try {
-    if (editingBudget.value) {
-      await budgetService.update(editingBudget.value.id, data)
-    } else {
-      await budgetService.create(data)
-    }
+    const res = editingBudget.value
+      ? await budgetService.update(editingBudget.value.id, data)
+      : await budgetService.create(data)
+    showToast(res?.message, 'success')
     showModal.value = false
     editingBudget.value = null
     fetchData()
   } catch (e) {
-    console.error('Save error:', e)
+    showToast(e?.message, 'error')
   }
 }
 async function deleteBudget(id) {
   if (!confirm('Hapus template anggaran ini?')) return
   try {
-    await budgetService.remove(id)
+    const res = await budgetService.remove(id)
+    showToast(res?.message, 'success')
     fetchData()
   } catch (e) {
-    console.error('Delete error:', e)
+    showToast(e?.message, 'error')
   }
 }
 </script>
