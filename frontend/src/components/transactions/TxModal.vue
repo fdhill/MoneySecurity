@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { X } from '@lucide/vue';
 
 const props = defineProps({ categories: Array, wallets: Array, editing: Object });
@@ -12,6 +12,16 @@ const form = ref({
   category_id: props.editing?.category_id || props.categories?.[0]?.id || '',
   wallet_id: props.editing?.wallet_id || props.wallets?.[0]?.id || '',
   description: props.editing?.description || '',
+});
+
+const filteredCategories = computed(() =>
+  props.categories?.filter(c => c.type === form.value.type) || []
+);
+
+watch(() => form.value.type, (type) => {
+  const list = props.categories?.filter(c => c.type === type) || [];
+  if (list.some(c => c.id === form.value.category_id)) return;
+  form.value.category_id = list[0]?.id || '';
 });
 
 function formatAmount(v) { return v ? Number(v).toLocaleString('id-ID') : ''; }
@@ -57,7 +67,7 @@ function submit() {
           <div>
             <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Kategori</label>
             <select v-model="form.category_id" class="w-full px-3 py-3 rounded-xl border border-border bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-              <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+              <option v-for="c in filteredCategories" :key="c.id" :value="c.id">{{ c.name }}</option>
             </select>
           </div>
           <div>
