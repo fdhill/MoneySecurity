@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { useRoute, useRouter, RouterView } from 'vue-router';
 import {
   LayoutDashboard, ArrowLeftRight, Wallet, Tag, Target,
-  MessageCircle, Settings, Bell, Menu, Banknote,
+  /*MessageCircle,*/ Settings, Bell, Menu, Banknote,
 } from '@lucide/vue';
 import { useAuth } from '@/composables/useAuth';
 
@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { name: 'wallets', label: 'Dompet', icon: Wallet },
   { name: 'categories', label: 'Kategori', icon: Tag },
   { name: 'budget', label: 'Anggaran', icon: Target },
-  { name: 'wa-bot', label: 'Bot WA', icon: MessageCircle },
+  // { name: 'wa-bot', label: 'Bot WA', icon: MessageCircle },
 ];
 
 const currentPage = computed(() => {
