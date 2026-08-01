@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { Plus, Banknote, Utensils, Car, Briefcase, Music, ShoppingBag, GraduationCap, Heart, Home, Zap, Coffee } from '@lucide/vue';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, Tooltip as ChartTooltip, Legend as ChartLegend } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, Tooltip as ChartTooltip, Legend as ChartLegend, LineController, DoughnutController } from 'chart.js';
 import StatCard from '@/components/dashboard/StatCard.vue';
 import BudgetWidget from '@/components/dashboard/BudgetWidget.vue';
 import TxModal from '@/components/transactions/TxModal.vue';
@@ -12,7 +12,7 @@ import { categoryService } from '@/services/categoryService';
 import { walletService } from '@/services/walletService';
 import { budgetService } from '@/services/budgetService';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, ChartTooltip, ChartLegend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, ChartTooltip, ChartLegend, LineController, DoughnutController);
 
 const router = useRouter();
 const transactions = ref([]);
@@ -48,10 +48,19 @@ async function fetchData() {
 
 async function syncCharts() {
   await nextTick();
-  if (cashChartEl.value && !cashChart) {
+  await new Promise((r) => requestAnimationFrame(r));
+  if (!cashChartEl.value) {
+    if (cashChart) {
+      try { cashChart.destroy(); } catch (e) { console.error('Gagal destroy chart arus kas', e); }
+      cashChart = null;
+    }
+  } else if (!cashChart) {
     try {
-      cashChart = new ChartJS(cashChartEl.value, { type: 'bar', data: areaChartData.value, options: lineChartOptions });
-    } catch (e) { console.error('Gagal membuat chart arus kas', e); }
+      cashChart = new ChartJS(cashChartEl.value, { type: 'line', data: areaChartData.value, options: lineChartOptions });
+    } catch (e) {
+      try { ChartJS.getChart(cashChartEl.value)?.destroy(); } catch {}
+      console.error('Gagal membuat chart arus kas:', e);
+    }
   }
   if (cashChart) {
     cashChart.data = areaChartData.value;
@@ -64,10 +73,16 @@ async function syncCharts() {
     }
     return;
   }
-  if (pieChartEl.value && !pieChart) {
+  if (!pieChartEl.value && pieChart) {
+    try { pieChart.destroy(); } catch (e) { console.error('Gagal destroy chart kategori', e); }
+    pieChart = null;
+  } else if (pieChartEl.value && !pieChart) {
     try {
       pieChart = new ChartJS(pieChartEl.value, { type: 'doughnut', data: pieChartData.value, options: pieChartOptions });
-    } catch (e) { console.error('Gagal membuat chart kategori', e); }
+    } catch (e) {
+      try { ChartJS.getChart(pieChartEl.value)?.destroy(); } catch {}
+      console.error('Gagal membuat chart kategori:', e);
+    }
   }
   if (pieChart) {
     pieChart.data = pieChartData.value;
@@ -114,6 +129,8 @@ const areaChartData = computed(() => {
     ],
   };
 });
+
+const hasFlowData = computed(() => areaChartData.value.datasets.some(ds => ds.data.some(v => Number(v) > 0)));
 
 const lineChartOptions = {
   responsive: true,
@@ -175,9 +192,10 @@ function saveTx(data) { transactionService.create(data).then(() => { showTxModal
               <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-400 inline-block" />Pengeluaran</span>
             </div>
           </div>
-          <div style="height: 200px;">
+          <div v-if="hasFlowData" style="height: 200px;">
             <canvas ref="cashChartEl" />
           </div>
+          <div v-else class="flex items-center justify-center h-[200px] text-muted-foreground text-sm">Belum ada data transaksi dalam 7 bulan terakhir</div>
         </div>
         <div class="bg-card rounded-2xl p-5 border border-border shadow-sm">
           <h3 class="text-sm font-semibold text-foreground mb-5">Pengeluaran per Kategori</h3>
