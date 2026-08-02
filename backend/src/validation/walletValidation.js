@@ -6,6 +6,7 @@ const createWalletRules = [
   body('balance')
     .notEmpty()
     .withMessage('balance is required')
+    .bail()
     .isNumeric({ min: 0, max: 99999999999999 })
     .withMessage('balance must not be minus'),
 ];
