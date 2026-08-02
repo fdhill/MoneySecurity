@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { useRoute, useRouter, RouterView } from 'vue-router';
 import {
   LayoutDashboard, ArrowLeftRight, Wallet, Tag, Target,
-  /*MessageCircle,*/ Settings, Bell, Menu, Banknote,
+  /*MessageCircle,*/ LogOut, Bell, Menu, Banknote,
 } from '@lucide/vue';
 import { useAuth } from '@/composables/useAuth';
 
@@ -86,9 +86,9 @@ function handleLogout() {
             <p class="text-xs font-semibold text-sidebar-fg truncate">{{ user?.name || 'User' }}</p>
             <p class="text-xs text-sidebar-fg/40 truncate">{{ user?.whatsapp_number || '' }}</p>
           </div>
-          <button @click="handleLogout"
+          <button @click="handleLogout" title="Keluar"
             class="p-1 rounded-lg hover:bg-sidebar-accent text-sidebar-fg/40 hover:text-sidebar-fg transition-colors">
-            <Settings :size="14" />
+            <LogOut :size="14" />
           </button>
         </div>
       </div>
