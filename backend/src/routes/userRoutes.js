@@ -1,10 +1,7 @@
 const { Router } = require('express');
 const userController = require('../controllers/userController');
 const { authorize } = require('../middlewares/authenticate');
-const {
-  createUserRules,
-  updateUserRules,
-} = require('../validation/userValidation');
+const {createUserRules, updateUserRules} = require('../validation/userValidation');
 
 const router = Router();
 
