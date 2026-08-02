@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const categoryController = require('../controllers/categoryController');
+const { categoryCreate, categoryUpdate } = require('../validation/categoryValidation');
 
 const router = Router();
 
@@ -80,7 +81,7 @@ router.get('/:id', categoryController.show);
  *       401:
  *         description: Unauthorized
  */
-router.post('/', categoryController.store);
+router.post('/', categoryCreate, categoryController.store);
 
 /**
  * @swagger
@@ -122,7 +123,7 @@ router.post('/', categoryController.store);
  *       404:
  *         description: Category not found
  */
-router.put('/:id', categoryController.update);
+router.put('/:id', categoryUpdate, categoryController.update);
 
 /**
  * @swagger
