@@ -1,20 +1,5 @@
 const categoryRepository = require('../repositories/categoryRepository');
-
-function assertFound(category, id) {
-  if (!category) {
-    const err = new Error(`category with id ${id} not found`);
-    err.status = 404;
-    throw err;
-  }
-}
-
-function assertOwnership(category, user) {
-  if (user.role != 1 && category.user_id != user.sub) {
-    const err = new Error('You do not have permission to access this category');
-    err.status = 403;
-    throw err;
-  }
-}
+const { assertFound, assertOwnership } = require('../validation/helpers');
 
 async function getAllCategories(user) {
   if (user.role == 1) {
@@ -25,18 +10,16 @@ async function getAllCategories(user) {
 
 async function getCategoryById(id, user) {
   const category = await categoryRepository.findById(id);
-  assertFound(category, id);
-  assertOwnership(category, user);
+  assertFound(category, id, 'category');
+  assertOwnership(
+    category,
+    user,
+    'You do not have permission to access this category',
+  );
   return category;
 }
 
 async function createCategory(data, user) {
-  if (!data.name || !data.type) {
-    const err = new Error('name and type are required');
-    err.status = 400;
-    throw err;
-  }
-
   return categoryRepository.create({
     user_id: user.sub,
     name: data.name,
@@ -45,35 +28,33 @@ async function createCategory(data, user) {
 }
 
 async function updateCategory(id, data, user) {
-  if (!data.name || !data.type) {
-    const err = new Error('name and type are required');
-    err.status = 400;
-    throw err;
-  }
-
   const category = await categoryRepository.findById(id);
-  assertFound(category, id);
-  assertOwnership(category, user);
+  assertFound(category, id, 'category');
+  assertOwnership(
+    category,
+    user,
+    'You do not have permission to access this category',
+  );
 
   const updated = await categoryRepository.update(id, {
     name: data.name,
     type: data.type,
   });
-  assertFound(updated, id);
+  assertFound(updated, id, 'category');
   return updated;
 }
 
 async function deleteCategory(id, user) {
   const category = await categoryRepository.findById(id);
-  assertFound(category, id);
-  assertOwnership(category, user);
+  assertFound(category, id, 'category');
+  assertOwnership(
+    category,
+    user,
+    'You do not have permission to access this category',
+  );
 
   const deleted = await categoryRepository.remove(id);
-  if (!deleted) {
-    const err = new Error(`category with id ${id} not found`);
-    err.status = 404;
-    throw err;
-  }
+  assertFound(deleted, id, 'category');
 }
 
 module.exports = {
