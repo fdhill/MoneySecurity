@@ -1,6 +1,10 @@
 const { Router } = require('express');
 const userController = require('../controllers/userController');
 const { authorize } = require('../middlewares/authenticate');
+const {
+  createUserRules,
+  updateUserRules,
+} = require('../validation/userValidation');
 
 const router = Router();
 
@@ -98,7 +102,7 @@ router.get('/:id', authorize(1), userController.show);
  *       409:
  *         description: WhatsApp number already used
  */
-router.post('/', authorize(1), userController.store);
+router.post('/', authorize(1), createUserRules, userController.store);
 
 /**
  * @swagger
@@ -141,7 +145,7 @@ router.post('/', authorize(1), userController.store);
  *       404:
  *         description: User not found
  */
-router.put('/:id', authorize(1), userController.update);
+router.put('/:id', authorize(1), updateUserRules, userController.update);
 
 /**
  * @swagger
