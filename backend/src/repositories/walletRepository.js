@@ -43,17 +43,9 @@ async function deductBalance(id, amount) {
      SET balance = balance - $1 
      WHERE id = $2 AND balance >= $1 
      RETURNING *`,
-    [amount, id]
+    [amount, id],
   );
-  
-  return rows[0] ? new Wallet(rows[0]) : null;
-}
 
-async function updateBalance(id, { balance }) {
-  const { rows } = await pool.query(
-    'UPDATE wallets SET balance = $1 WHERE id = $2 RETURNING *',
-    [balance, id],
-  );
   return rows[0] ? new Wallet(rows[0]) : null;
 }
 
@@ -71,6 +63,5 @@ module.exports = {
   create,
   update,
   deductBalance,
-  updateBalance,
   remove,
 };
