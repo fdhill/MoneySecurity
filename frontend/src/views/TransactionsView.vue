@@ -65,6 +65,7 @@ function deleteTx(id) {
 
 function getCatById(id) { return categories.value.find(c => c.id === id); }
 function getWalById(id) { return wallets.value.find(w => w.id === id); }
+function formatDate(d) { return (d || '').slice(0, 10); }
 </script>
 
 <template>
@@ -121,7 +122,7 @@ function getWalById(id) { return wallets.value.find(w => w.id === id); }
           <tbody class="divide-y divide-border">
             <tr v-if="filtered.length === 0"><td colspan="6" class="text-center py-16 text-muted-foreground text-sm">Tidak ada transaksi</td></tr>
             <tr v-for="tx in filtered" :key="tx.id" class="hover:bg-muted/20 transition-colors group">
-              <td class="px-5 py-3.5 text-sm text-muted-foreground font-mono whitespace-nowrap">{{ tx.transaction_date }}</td>
+              <td class="px-5 py-3.5 text-sm text-muted-foreground font-mono whitespace-nowrap">{{ formatDate(tx.transaction_date) }}</td>
               <td class="px-4 py-3.5"><CategoryBadge :category="getCatById(tx.category_id)" /></td>
               <td class="px-4 py-3.5 text-sm text-foreground max-w-[200px] truncate">{{ tx.description }}</td>
               <td class="px-4 py-3.5 text-xs text-muted-foreground">{{ getWalById(tx.wallet_id)?.name }}</td>
@@ -149,7 +150,7 @@ function getWalById(id) { return wallets.value.find(w => w.id === id); }
             <p class="text-sm font-medium text-foreground truncate">{{ tx.description }}</p>
             <div class="flex items-center gap-2 mt-0.5">
               <CategoryBadge :category="getCatById(tx.category_id)" />
-              <span class="text-xs text-muted-foreground">{{ tx.transaction_date }}</span>
+              <span class="text-xs text-muted-foreground">{{ formatDate(tx.transaction_date) }}</span>
             </div>
           </div>
           <div class="flex items-center gap-2">
