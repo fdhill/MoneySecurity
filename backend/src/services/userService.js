@@ -23,7 +23,7 @@ async function createUser(data, user) {
     data.whatsapp_number,
   );
   if (existing) {
-    httpError('whatsapp_number already used', 409);
+    throw httpError('whatsapp_number already used', 409);
   }
 
   const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
@@ -53,7 +53,7 @@ async function updateProfile(user, { name, whatsapp_number }) {
 async function deleteUser(id) {
   const deleted = await userRepository.remove(id);
   if (!deleted) {
-    httpError(`User with id ${id} not found`, 404);
+    throw httpError(`User with id ${id} not found`, 404);
   }
 }
 
@@ -63,7 +63,7 @@ async function changePassword(id, old_password, new_password) {
 
   const isMatch = await bcrypt.compare(old_password, user.password);
   if (!isMatch) {
-    httpError('Invalid password', 401);
+    throw httpError('Invalid password', 401);
   }
 
   const hashedPassword = await bcrypt.hash(new_password, SALT_ROUNDS);
