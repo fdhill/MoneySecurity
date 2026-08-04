@@ -1,9 +1,9 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter, RouterView } from 'vue-router';
 import {
   LayoutDashboard, ArrowLeftRight, Wallet, Tag, Target,
-  /*MessageCircle,*/ LogOut, Bell, Menu, Banknote,
+  /*MessageCircle,*/ LogOut, Bell, Menu, X,
 } from '@lucide/vue';
 import { useAuth } from '@/composables/useAuth';
 
@@ -12,6 +12,20 @@ const router = useRouter();
 const { user, logout } = useAuth();
 
 const sidebarOpen = ref(false);
+
+// Load sidebar state from localStorage
+onMounted(() => {
+  const saved = localStorage.getItem('sidebarOpen');
+  if (saved !== null) {
+    sidebarOpen.value = saved === 'true';
+  }
+});
+
+// Save sidebar state to localStorage whenever it changes
+function toggleSidebar() {
+  sidebarOpen.value = !sidebarOpen.value;
+  localStorage.setItem('sidebarOpen', sidebarOpen.value.toString());
+}
 
 const NAV_ITEMS = [
   { name: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -34,28 +48,34 @@ const userInitials = computed(() => {
 
 function navigate(name) {
   router.push({ name });
-  sidebarOpen.value = false;
+  // Close sidebar on mobile after navigation
+  if (window.innerWidth < 768) {
+    sidebarOpen.value = false;
+    localStorage.setItem('sidebarOpen', 'false');
+  }
 }
 
 function handleLogout() {
   logout();
   router.push({ name: 'login' });
 }
+
 </script>
 
 <template>
   <div class="flex h-screen bg-background overflow-hidden font-sans">
-    <!-- Mobile overlay -->
-    <div v-if="sidebarOpen" class="fixed inset-0 bg-black/40 z-30 md:hidden" @click="sidebarOpen = false" />
+    <!-- Overlay backdrop (only mobile) -->
+    <div v-if="sidebarOpen" class="fixed inset-0 bg-black/40 z-30 lg:hidden" @click="toggleSidebar" />
 
-    <!-- Sidebar -->
-    <aside class="fixed md:static inset-y-0 left-0 z-40 flex flex-col bg-sidebar-bg transition-transform duration-300 w-60"
-      :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
+    <!-- Sidebar - Always fixed position, slides in/out -->
+    <aside 
+      class="fixed inset-y-0 left-0 z-40 flex flex-col bg-sidebar-bg transition-transform duration-300 w-60"
+      :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
       <div class="px-5 py-5 border-b border-sidebar-border">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-            <Banknote class="text-white" :size="16" />
+            <component :is="LayoutDashboard" class="text-white" :size="16" />
           </div>
           <div>
             <p class="text-sm font-bold text-sidebar-fg leading-tight">MoneySecurity</p>
@@ -94,12 +114,14 @@ function handleLogout() {
       </div>
     </aside>
 
-    <!-- Main content -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <!-- Main content - Expands full width when sidebar closed -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300"
+         :class="sidebarOpen ? 'lg:ml-60' : 'ml-0'">
       <header class="flex items-center gap-3 px-5 py-3.5 border-b border-border bg-card/80 backdrop-blur-sm flex-shrink-0">
-        <button @click="sidebarOpen = !sidebarOpen"
+        <button @click="toggleSidebar" title="Toggle Menu"
           class="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-          <Menu :size="18" />
+          <Menu v-if="!sidebarOpen" :size="18" />
+          <X v-else :size="18" />
         </button>
         <div class="flex-1">
           <p class="text-xs text-muted-foreground font-medium">{{ currentPage }}</p>
