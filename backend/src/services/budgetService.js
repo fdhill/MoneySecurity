@@ -147,7 +147,7 @@ async function getInstanceSummary(instance_id, user) {
     instance.period_end,
   );
 
-  const remaining = Number(template.amount) - spent;
+  const remaining = Math.max(0, Number(template.amount) - spent);
   const today = new Date();
   const endDate = new Date(instance.period_end);
   const days_left = Math.max(
