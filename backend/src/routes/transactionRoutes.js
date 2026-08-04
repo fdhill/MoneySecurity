@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const transactionController = require('../controllers/transactionController');
+const { transactionCreate, transactionUpdate } = require('../validation/transactionValidation');
 
 const router = Router();
 
@@ -93,7 +94,7 @@ router.get('/:id', transactionController.show);
  *       401:
  *         description: Unauthorized
  */
-router.post('/', transactionController.store);
+router.post('/', transactionCreate, transactionController.store);
 
 /**
  * @swagger
@@ -147,7 +148,7 @@ router.post('/', transactionController.store);
  *       404:
  *         description: Transaction not found
  */
-router.put('/:id', transactionController.update);
+router.put('/:id', transactionUpdate, transactionController.update);
 
 /**
  * @swagger
