@@ -4,14 +4,13 @@ import { Plus, Edit2, Trash2, Target, Sparkles, Check, Flame } from '@lucide/vue
 import BudgetModal from '@/components/budget/BudgetModal.vue'
 import { formatIDR, formatShort } from '@/components/common/icons'
 import { budgetService } from '@/services/budgetService'
-import { transactionService } from '@/services/transactionService'
 import { categoryService } from '@/services/categoryService'
 import { useToast } from '@/composables/useToast'
 
 const { showToast } = useToast()
 
 const budgets = ref([])
-const transactions = ref([])
+const budgetSummaries = ref([])
 const categories = ref([])
 const loading = ref(true)
 const showModal = ref(false)
@@ -44,36 +43,41 @@ const now = new Date()
 const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 const periodLabel = computed(() => `${MONTHS[now.getMonth()]} ${now.getFullYear()}`)
 
-const currentYear = now.getFullYear()
-const currentMonth = now.getMonth()
-const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
-const daysPassed = now.getDate()
-const daysRemaining = Math.max(1, daysInMonth - daysPassed)
-
 const templatesWithStats = computed(() => {
   return budgets.value.map((b, i) => {
-    const cat = getCatById(b.category_id)
-    const spent = transactions.value
-      .filter(t => t.category_id === b.category_id && t.type === 'expense' && t.transaction_date?.startsWith(`${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`))
-      .reduce((s, t) => s + Number(t.amount), 0)
-    const amount = Number(b.amount)
-    const remaining = Math.max(0, amount - spent)
-    const pct = amount > 0 ? Math.min(100, Math.round((spent / amount) * 100)) : 0
-    const dailyBudget = b.frequency === 'daily' ? amount : b.frequency === 'weekly' ? amount / 7 : b.frequency === 'yearly' ? amount / 365 : amount / daysInMonth
-    const pace = dailyBudget * daysPassed > 0 ? spent / (dailyBudget * daysPassed) : 0
+    const summary = budgetSummaries.value.find(s => s.template_id === b.id)
+    if (!summary) {
+      return {
+        ...b,
+        _cat: getCatById(b.category_id),
+        _color: getCatColor(getCatById(b.category_id), i),
+        _spent: 0,
+        _remaining: Number(b.amount),
+        _pct: 0,
+        _status: 'normal',
+        _adaptiveDaily: 0,
+      }
+    }
+
+    const pct = summary.budget > 0 ? Math.min(100, Math.round((summary.spent / summary.budget) * 100)) : 0
+    const daysInPeriod = Math.ceil((new Date(summary.period_end) - new Date(summary.period_start)) / (1000 * 60 * 60 * 24)) + 1
+    const daysPassed = Math.ceil((now - new Date(summary.period_start)) / (1000 * 60 * 60 * 24))
+    const dailyBudget = summary.budget / daysInPeriod
+    const pace = dailyBudget * daysPassed > 0 ? summary.spent / (dailyBudget * daysPassed) : 0
+    
     let status = 'normal'
     if (pace > 1.15) status = 'boros'
     else if (pace < 0.85) status = 'hemat'
-    const adaptiveDaily = daysRemaining > 0 ? remaining / daysRemaining : remaining
+
     return {
       ...b,
-      _cat: cat,
-      _color: getCatColor(cat, i),
-      _spent: spent,
-      _remaining: remaining,
+      _cat: getCatById(b.category_id),
+      _color: getCatColor(getCatById(b.category_id), i),
+      _spent: summary.spent,
+      _remaining: summary.remaining,
       _pct: pct,
       _status: status,
-      _adaptiveDaily: adaptiveDaily,
+      _adaptiveDaily: summary.daily_estimate,
     }
   })
 })
@@ -102,14 +106,31 @@ function statusBadge(status) {
 async function fetchData() {
   loading.value = true
   try {
-    const [budRes, txRes, catRes] = await Promise.all([
+    const [budRes, catRes] = await Promise.all([
       budgetService.list(),
-      transactionService.list(),
       categoryService.list(),
     ])
     budgets.value = budRes.data || []
-    transactions.value = (txRes.data || []).map(t => ({ ...t, category_id: t.category?.id, wallet_id: t.wallet?.id }))
     categories.value = catRes.data || []
+
+    // Fetch instance & summary for each budget template
+    const summaryPromises = budgets.value.map(async (budget) => {
+      try {
+        const instanceRes = await budgetService.getActiveInstance(budget.id)
+        const instance = instanceRes.data
+        if (instance && instance.id) {
+          const summaryRes = await budgetService.getInstanceSummary(instance.id)
+          return summaryRes.data
+        }
+        return null
+      } catch (e) {
+        console.error(`Failed to fetch summary for budget ${budget.id}:`, e)
+        return null
+      }
+    })
+
+    const summaries = await Promise.all(summaryPromises)
+    budgetSummaries.value = summaries.filter(s => s !== null)
   } catch (e) {
     console.error('Fetch error:', e)
   } finally {

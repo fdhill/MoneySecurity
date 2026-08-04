@@ -22,6 +22,7 @@ const transactions = ref([]);
 const categories = ref([]);
 const wallets = ref([]);
 const budgets = ref([]);
+const budgetSummaries = ref([]);
 const loading = ref(true);
 const showTxModal = ref(false);
 const cashChartEl = ref(null);
@@ -46,6 +47,25 @@ async function fetchData() {
     categories.value = (catRes.data || []).map((c, i) => ({ ...c, _color: getCatColor(c, i), _iconName: getCatIconName(c) }));
     wallets.value = walRes.data || [];
     budgets.value = budRes.data || [];
+
+    // Fetch budget summaries
+    const summaryPromises = budgets.value.map(async (budget) => {
+      try {
+        const instanceRes = await budgetService.getActiveInstance(budget.id);
+        const instance = instanceRes.data;
+        if (instance && instance.id) {
+          const summaryRes = await budgetService.getInstanceSummary(instance.id);
+          return summaryRes.data;
+        }
+        return null;
+      } catch (e) {
+        console.error(`Failed to fetch summary for budget ${budget.id}:`, e);
+        return null;
+      }
+    });
+
+    const summaries = await Promise.all(summaryPromises);
+    budgetSummaries.value = summaries.filter(s => s !== null);
   } catch (e) { console.error('Fetch error:', e); } finally { loading.value = false; }
 }
 
@@ -215,7 +235,7 @@ function saveTx(data) {
         </div>
       </div>
 
-      <BudgetWidget :budgets="budgets" :transactions="transactions" :categories="categories" @navigate="router.push({ name: 'budget' })" />
+      <BudgetWidget :budgets="budgets" :budget-summaries="budgetSummaries" @navigate="router.push({ name: 'budget' })" />
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div v-for="(w, wi) in wallets" :key="w.id" class="bg-card rounded-2xl p-4 border border-border shadow-sm hover:shadow-md transition-shadow">

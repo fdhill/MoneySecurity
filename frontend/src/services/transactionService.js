@@ -4,6 +4,9 @@ export const transactionService = {
   list() {
     return api.get('/transactions');
   },
+  getById(id) {
+    return api.get(`/transactions/${id}`);
+  },
   create(data) {
     return api.post('/transactions', data);
   },
