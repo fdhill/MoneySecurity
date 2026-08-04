@@ -5,38 +5,37 @@ import { formatShort, formatIDR, ICON_MAP } from '@/components/common/icons';
 
 const props = defineProps({
   budgets: Array,
-  transactions: Array,
-  categories: Array,
+  budgetSummaries: Array,
 });
 
 const emit = defineEmits(['navigate']);
 
-const totalLimit = computed(() => props.budgets.reduce((s, b) => s + Number(b.amount), 0));
-
-const totalSpent = computed(() => {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
-  return props.budgets.reduce((s, b) => {
-    return s + props.transactions
-      .filter(t => t.type === 'expense' && t.category_id === b.category_id
-        && t.transaction_date >= start && t.transaction_date <= end)
-      .reduce((a, t) => a + Number(t.amount), 0);
-  }, 0);
-});
-
+const totalLimit = computed(() => props.budgetSummaries.reduce((s, summary) => s + Number(summary.budget || 0), 0));
+const totalSpent = computed(() => props.budgetSummaries.reduce((s, summary) => s + Number(summary.spent || 0), 0));
 const remaining = computed(() => totalLimit.value - totalSpent.value);
 const pct = computed(() => totalLimit.value > 0 ? Math.min(100, Math.round((totalSpent.value / totalLimit.value) * 100)) : 0);
 
 const now = new Date();
-const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-const daysPassed = now.getDate();
-const daysRemaining = totalDays - daysPassed;
+const daysRemaining = computed(() => {
+  if (props.budgetSummaries.length === 0) return 0;
+  const avgDaysLeft = props.budgetSummaries.reduce((sum, s) => sum + (s.days_left || 0), 0) / props.budgetSummaries.length;
+  return Math.round(avgDaysLeft);
+});
 
-const idealSpentSoFar = computed(() => (totalLimit.value / totalDays) * daysPassed);
+const totalDays = computed(() => {
+  const firstSummary = props.budgetSummaries[0];
+  if (!firstSummary) return 30;
+  const start = new Date(firstSummary.period_start);
+  const end = new Date(firstSummary.period_end);
+  return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+});
+
+const daysPassed = computed(() => totalDays.value - daysRemaining.value);
+
+const idealSpentSoFar = computed(() => (totalLimit.value / totalDays.value) * daysPassed.value);
 const pace = computed(() => totalSpent.value / Math.max(1, idealSpentSoFar.value));
 const status = computed(() => pace.value > 1.15 ? 'boros' : pace.value < 0.85 ? 'hemat' : 'normal');
-const adaptiveDaily = computed(() => daysRemaining > 0 ? Math.max(0, remaining.value / daysRemaining) : 0);
+const adaptiveDaily = computed(() => daysRemaining.value > 0 ? Math.max(0, remaining.value / daysRemaining.value) : 0);
 
 const statusCfg = computed(() => ({
   hemat: { bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700', icon: Sparkles, msg: 'Kamu hemat! Boleh agak longgar hari ini.' },
@@ -46,8 +45,14 @@ const statusCfg = computed(() => ({
 
 const barColor = computed(() => pct.value >= 90 ? 'bg-rose-500' : pct.value >= 70 ? 'bg-amber-400' : 'bg-emerald-500');
 
-const PERIOD_START = computed(() => new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10));
-const PERIOD_END = computed(() => new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10));
+const PERIOD_START = computed(() => {
+  const firstSummary = props.budgetSummaries[0];
+  return firstSummary ? firstSummary.period_start : new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+});
+const PERIOD_END = computed(() => {
+  const firstSummary = props.budgetSummaries[0];
+  return firstSummary ? firstSummary.period_end : new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+});
 </script>
 
 <template>
