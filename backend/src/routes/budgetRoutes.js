@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const budgetController = require('../controllers/budgetController');
+const { budgetCreate, budgetUpdate } = require('../validation/budgetValidation');
 
 const router = Router();
 
@@ -85,7 +86,7 @@ router.get('/:id', budgetController.showTemplate);
  *       401:
  *         description: Unauthorized
  */
-router.post('/', budgetController.storeTemplate);
+router.post('/', budgetCreate, budgetController.storeTemplate);
 
 /**
  * @swagger
@@ -132,7 +133,7 @@ router.post('/', budgetController.storeTemplate);
  *       404:
  *         description: Budget template not found
  */
-router.put('/:id', budgetController.updateTemplate);
+router.put('/:id', budgetUpdate, budgetController.updateTemplate);
 
 /**
  * @swagger

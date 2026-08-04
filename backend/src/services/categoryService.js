@@ -1,5 +1,5 @@
 const categoryRepository = require('../repositories/categoryRepository');
-const { assertFound, assertOwnership } = require('../validation/helpers');
+const { assertFound, assertOwnership } = require('../utils/helpers');
 
 async function getAllCategories(user) {
   if (user.role == 1) {

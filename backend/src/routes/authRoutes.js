@@ -2,6 +2,12 @@ const { Router } = require('express');
 const authController = require('../controllers/authController');
 const userController = require('../controllers/userController');
 const { authenticate } = require('../middlewares/authenticate');
+const {
+  authLogin,
+  authRegister,
+  authUpdateProfile,
+  authChangePassword,
+} = require('../validation/authValidation');
 
 const router = Router();
 
@@ -40,7 +46,7 @@ const router = Router();
  *       409:
  *         description: WhatsApp number already used
  */
-router.post('/register', userController.store);
+router.post('/register', authRegister, userController.store);
 
 /**
  * @swagger
@@ -72,7 +78,7 @@ router.post('/register', userController.store);
  *       401:
  *         description: Invalid credentials
  */
-router.post('/login', authController.login);
+router.post('/login', authLogin, authController.login);
 
 /**
  * @swagger
@@ -124,7 +130,7 @@ router.get('/me', authenticate, authController.me);
  *       401:
  *         description: Unauthorized
  */
-router.put('/me', authenticate, authController.updateProfile);
+router.put('/me', authenticate, authUpdateProfile, authController.updateProfile);
 
 /**
  * @swagger
@@ -156,6 +162,6 @@ router.put('/me', authenticate, authController.updateProfile);
  *       401:
  *         description: Invalid old password
  */
-router.put('/me/password', authenticate, authController.changePassword);
+router.put('/me/password', authenticate, authChangePassword, authController.changePassword);
 
 module.exports = router;
