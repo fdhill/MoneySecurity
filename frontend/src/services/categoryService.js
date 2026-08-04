@@ -4,6 +4,9 @@ export const categoryService = {
   list() {
     return api.get('/categories');
   },
+  getById(id) {
+    return api.get(`/categories/${id}`);
+  },
   create(data) {
     return api.post('/categories', data);
   },
