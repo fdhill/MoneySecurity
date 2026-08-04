@@ -22,8 +22,8 @@ const createTransactionRules = [
     .notEmpty()
     .withMessage('amount is required')
     .bail()
-    .isNumeric({ min: 1, max: MAX_AMOUNT })
-    .withMessage(`amount must be a positive number and not exceed ${MAX_AMOUNT}`),
+    .isInt({ min: 1, max: MAX_AMOUNT })
+    .withMessage(`amount must be a positive integer between 1 and ${MAX_AMOUNT}`),
   body('type')
     .notEmpty()
     .withMessage('type is required')

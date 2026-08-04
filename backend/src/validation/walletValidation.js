@@ -1,19 +1,21 @@
 const { body } = require('express-validator');
 const validate = require('../middlewares/validate');
 
+const MAX_AMOUNT = 99999999999999;
+
 const createWalletRules = [
   body('name').trim().notEmpty().withMessage('name is required'),
   body('balance')
     .notEmpty()
     .withMessage('balance is required')
     .bail()
-    .isNumeric({ min: 0, max: 99999999999999 })
-    .withMessage('balance must not be minus'),
+    .isInt({ min: 0, max: MAX_AMOUNT })
+    .withMessage(`balance must be a positive integer between 0 and ${MAX_AMOUNT}`),
 ];
 
 const updateWalletRules = createWalletRules;
 
-const categoryCreate = [...createWalletRules, validate];
-const categoryUpdate = [...updateWalletRules, validate];
+const walletCreate = [...createWalletRules, validate];
+const walletUpdate = [...updateWalletRules, validate];
 
-module.exports = { createWalletRules, updateWalletRules };
+module.exports = { walletCreate, walletUpdate };
