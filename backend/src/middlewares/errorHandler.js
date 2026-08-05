@@ -6,7 +6,7 @@ function errorHandler(err, req, res, next) {
 
   if (process.env.NODE_ENV === 'development') {
     console.error('[ERROR]', err);
-    return fail(res, message, status, { stack: err.stack });
+    return fail(res, message, status, { errors: err.stack });
   }
 
   if (status === 400 && err.isValidation) {
