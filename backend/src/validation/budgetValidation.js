@@ -2,6 +2,7 @@ const { body } = require('express-validator');
 const validate = require('../middlewares/validate');
 
 const VALID_FREQUENCIES = ['monthly', 'weekly', 'yearly'];
+const MAX_AMOUNT = 99999999999999;
 
 const createBudgetRules = [
   body('category_id')
@@ -14,8 +15,8 @@ const createBudgetRules = [
     .notEmpty()
     .withMessage('amount is required')
     .bail()
-    .isNumeric({ min: 1, max: 99999999999999 })
-    .withMessage('amount must be a positive number'),
+    .isInt({ min: 1, max: MAX_AMOUNT })
+    .withMessage(`amount must be a positive integer between 1 and ${MAX_AMOUNT}`),
   body('frequency')
     .notEmpty()
     .withMessage('frequency is required')

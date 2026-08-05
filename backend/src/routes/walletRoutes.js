@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const walletController = require('../controllers/walletController');
-const {createWalletRules, updateWalletRules} = require('../validation/walletValidation');
+const { walletCreate, walletUpdate } = require('../validation/walletValidation');
 
 const router = Router();
 
@@ -79,7 +79,7 @@ router.get('/:id', walletController.show);
  *       401:
  *         description: Unauthorized
  */
-router.post('/', createWalletRules, walletController.store);
+router.post('/', walletCreate, walletController.store);
 
 /**
  * @swagger
@@ -120,7 +120,7 @@ router.post('/', createWalletRules, walletController.store);
  *       404:
  *         description: Wallet not found
  */
-router.put('/:id', updateWalletRules, walletController.update);
+router.put('/:id', walletUpdate, walletController.update);
 
 /**
  * @swagger

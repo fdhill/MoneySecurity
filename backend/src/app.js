@@ -4,6 +4,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const routes = require('./routes');
 const errorHandler = require('./middlewares/errorHandler');
+const {fail} = require('./utils/response');
 
 require('./jobs/budgetCron');
 
@@ -17,7 +18,7 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api', routes);
 
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+  fail(res, 'Route not found', 404, null);
 });
 
 app.use(errorHandler);
