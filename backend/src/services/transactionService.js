@@ -1,34 +1,16 @@
 const transactionRepository = require('../repositories/transactionRepository');
 const walletRepository = require('../repositories/walletRepository');
 const categoryRepository = require('../repositories/categoryRepository');
-
-function assertFound(transaction, id) {
-  if (!transaction) {
-    const err = new Error(`transaction with id ${id} not found`);
-    err.status = 404;
-    throw err;
-  }
-}
-
-function assertOwnership(transaction, user) {
-  if (user.role != 1 && transaction.user_id != user.sub) {
-    const err = new Error(
-      'You do not have permission to access this transaction',
-    );
-    err.status = 403;
-    throw err;
-  }
-}
+const { assertFound, assertOwnership, httpError } = require('../utils/helpers');
 
 async function applyTransaction(wallet, amount, type) {
   const delta = type === 'expense' ? Number(amount) : -Number(amount);
 
   if (delta > 0 && Number(wallet.balance) < delta) {
-    const err = new Error(
+    throw httpError(
       `you don't have enough money in your ${wallet.name} wallet`,
+      402,
     );
-    err.status = 402;
-    throw err;
   }
 
   return walletRepository.deductBalance(wallet.id, delta);
@@ -44,11 +26,10 @@ async function reverseTransaction(old_transaction, new_transaction, newWallet) {
 
   if (old_transaction.wallet_id === new_transaction.wallet_id) {
     if (delta < 0 && Number(newWallet.balance) < -delta) {
-      const err = new Error(
+      throw httpError(
         `you don't have enough money in your ${newWallet.name} wallet`,
+        402,
       );
-      err.status = 402;
-      throw err;
     }
 
     return walletRepository.deductBalance(newWallet.id, -delta);
@@ -69,34 +50,26 @@ async function getAllTransactions(user) {
 
 async function getTransactionById(id, user) {
   const transaction = await transactionRepository.findById(id);
-  assertFound(transaction, id);
-  assertOwnership(transaction, user);
+  assertFound(transaction, id, 'transaction');
+  assertOwnership(transaction, user, 'transaction');
   return transaction;
 }
 
 async function createTransaction(data, user) {
-  if (!data.amount || !data.type || !data.category_id || !data.wallet_id) {
-    const err = new Error('category, wallet, amount, and type are required');
-    err.status = 400;
-    throw err;
-  }
-
   const wallet = await walletRepository.findById(data.wallet_id);
   const category = await categoryRepository.findById(data.category_id);
 
   if (wallet.user_id != user.sub || category.user_id != user.sub) {
-    const err = new Error(
+    throw httpError(
       'You do not have permission to access this category or wallet',
+      403,
     );
-    err.status = 403;
-    throw err;
   }
   if (category.type != data.type) {
-    const err = new Error(
+    throw httpError(
       `Category ${category.name} is an ${category.type} category, but transaction type is set to ${data.type}`,
+      400,
     );
-    err.status = 400;
-    throw err;
   }
 
   await applyTransaction(wallet, data.amount, data.type);
@@ -114,32 +87,24 @@ async function createTransaction(data, user) {
 }
 
 async function updateTransaction(id, data, user) {
-  if (!data.amount || !data.type || !data.category_id || !data.wallet_id) {
-    const err = new Error('category, wallet, amount, and type are required');
-    err.status = 400;
-    throw err;
-  }
-
   const transaction = await transactionRepository.findById(id);
-  assertFound(transaction, id);
-  assertOwnership(transaction, user);
+  assertFound(transaction, id, 'transaction');
+  assertOwnership(transaction, user, 'transaction');
 
   const wallet = await walletRepository.findById(data.wallet_id);
   const category = await categoryRepository.findById(data.category_id);
 
   if (wallet.user_id != user.sub || category.user_id != user.sub) {
-    const err = new Error(
+    throw httpError(
       'You do not have permission to access this category or wallet',
+      403,
     );
-    err.status = 403;
-    throw err;
   }
   if (category.type != data.type) {
-    const err = new Error(
+    throw httpError(
       `Category ${category.name} is an ${category.type} category, but transaction type is set to ${data.type}`,
+      400,
     );
-    err.status = 400;
-    throw err;
   }
 
   await reverseTransaction(transaction, data, wallet);
@@ -153,21 +118,17 @@ async function updateTransaction(id, data, user) {
     transaction_date:
       data.transaction_date || transaction.transaction_date,
   });
-  assertFound(updated, id);
+  assertFound(updated, id, 'transaction');
   return updated;
 }
 
 async function deleteTransaction(id, user) {
   const transaction = await transactionRepository.findById(id);
-  assertFound(transaction, id);
-  assertOwnership(transaction, user);
+  assertFound(transaction, id, 'transaction');
+  assertOwnership(transaction, user, 'transaction');
 
   const deleted = await transactionRepository.remove(id);
-  if (!deleted) {
-    const err = new Error(`transaction with id ${id} not found`);
-    err.status = 404;
-    throw err;
-  }
+  assertFound(deleted, id, 'transaction');
 }
 
 module.exports = {

@@ -1,7 +1,7 @@
 const budgetTemplateRepository = require('../repositories/budgetTemplateRepository');
 const budgetInstanceRepository = require('../repositories/budgetInstanceRepository');
 const transactionRepository = require('../repositories/transactionRepository');
-const { assertFound, assertOwnership, httpError } = require('../utils/helpers');
+const { assertFound, assertOwnership } = require('../utils/helpers');
 
 function calculatePeriod(frequency) {
   const now = new Date();
@@ -74,9 +74,7 @@ async function deleteTemplate(id, user) {
   assertOwnership(template, user, 'budget template');
 
   const deleted = await budgetTemplateRepository.remove(id);
-  if (!deleted) {
-    throw httpError(`budget template with id ${id} not found`, 404);
-  }
+  assertFound(deleted, id, 'budget template');
 }
 
 async function getActiveInstance(template_id, user) {

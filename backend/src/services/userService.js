@@ -62,9 +62,7 @@ async function updateProfile(user, { name, whatsapp_number }) {
 
 async function deleteUser(id) {
   const deleted = await userRepository.remove(id);
-  if (!deleted) {
-    throw httpError(`User with id ${id} not found`, 404);
-  }
+  assertFound(deleted, id, 'user');
 }
 
 async function changePassword(id, old_password, new_password) {

@@ -41,11 +41,7 @@ async function deleteWallet(id, user) {
   assertOwnership(wallet, user, 'wallet');
 
   const deleted = await walletRepository.remove(id);
-  if (!deleted) {
-    const err = new Error(`wallet with id ${id} not found`);
-    err.status = 404;
-    throw err;
-  }
+  assertFound(deleted, id, 'wallet');
 }
 
 module.exports = {
