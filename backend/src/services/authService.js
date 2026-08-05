@@ -1,27 +1,14 @@
 const bcrypt = require('bcryptjs');
 const userRepository = require('../repositories/userRepository');
 const { sign } = require('../config/jwt');
+const {httpError} = require('../utils/helpers');
 
 async function login({ whatsapp_number, password }) {
-  if (!whatsapp_number || !password) {
-    const err = new Error('number and password are required');
-    err.status = 400;
-    throw err;
-  }
-
   const user = await userRepository.findByWhatsappNumber(whatsapp_number);
-  if (!user) {
-    const err = new Error('Invalid number or password');
-    err.status = 401;
-    throw err;
-  }
+  if (!user) throw httpError('Invalid number or password', 401);
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    const err = new Error('Invalid number or password');
-    err.status = 401;
-    throw err;
-  }
+  if (!isMatch) throw httpError('Invalid number or password', 401);
 
   const payload = {
     sub: user.id,
