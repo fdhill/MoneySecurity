@@ -1,22 +1,7 @@
 const budgetTemplateRepository = require('../repositories/budgetTemplateRepository');
 const budgetInstanceRepository = require('../repositories/budgetInstanceRepository');
 const transactionRepository = require('../repositories/transactionRepository');
-
-function assertFound(data, id) {
-  if (!data) {
-    const err = new Error(`Data with id ${id} not found`);
-    err.status = 404;
-    throw err;
-  }
-}
-
-function assertOwnership(data, user) {
-  if (user.role != 1 && data.user_id != user.sub) {
-    const err = new Error('You do not have permission to access this resource');
-    err.status = 403;
-    throw err;
-  }
-}
+const { assertFound, assertOwnership, httpError } = require('../utils/helpers');
 
 function calculatePeriod(frequency) {
   const now = new Date();
@@ -51,18 +36,12 @@ async function getAllTemplates(user) {
 
 async function getTemplateById(id, user) {
   const template = await budgetTemplateRepository.findById(id);
-  assertFound(template, id);
-  assertOwnership(template, user);
+  assertFound(template, id, 'budget template');
+  assertOwnership(template, user, 'budget template');
   return template;
 }
 
 async function createTemplate(data, user) {
-  if (!data.category_id || !data.amount || !data.frequency) {
-    const err = new Error('category_id, amount, and frequency are required');
-    err.status = 400;
-    throw err;
-  }
-
   return budgetTemplateRepository.create({
     user_id: user.sub,
     category_id: data.category_id,
@@ -73,15 +52,9 @@ async function createTemplate(data, user) {
 }
 
 async function updateTemplate(id, data, user) {
-  if (!data.amount || !data.frequency) {
-    const err = new Error('amount and frequency are required');
-    err.status = 400;
-    throw err;
-  }
-
   const template = await budgetTemplateRepository.findById(id);
-  assertFound(template, id);
-  assertOwnership(template, user);
+  assertFound(template, id, 'budget template');
+  assertOwnership(template, user, 'budget template');
 
   const updated = await budgetTemplateRepository.update(id, {
     amount: data.amount,
@@ -91,27 +64,25 @@ async function updateTemplate(id, data, user) {
         ? data.is_recurring
         : template.is_recurring,
   });
-  assertFound(updated, id);
+  assertFound(updated, id, 'budget template');
   return updated;
 }
 
 async function deleteTemplate(id, user) {
   const template = await budgetTemplateRepository.findById(id);
-  assertFound(template, id);
-  assertOwnership(template, user);
+  assertFound(template, id, 'budget template');
+  assertOwnership(template, user, 'budget template');
 
   const deleted = await budgetTemplateRepository.remove(id);
   if (!deleted) {
-    const err = new Error(`Template with id ${id} not found`);
-    err.status = 404;
-    throw err;
+    throw httpError(`budget template with id ${id} not found`, 404);
   }
 }
 
 async function getActiveInstance(template_id, user) {
   const template = await budgetTemplateRepository.findById(template_id);
-  assertFound(template, template_id);
-  assertOwnership(template, user);
+  assertFound(template, template_id, 'budget template');
+  assertOwnership(template, user, 'budget template');
 
   const today = new Date().toISOString().split('T')[0];
   let instance = await budgetInstanceRepository.findActiveByTemplateId(
@@ -133,13 +104,13 @@ async function getActiveInstance(template_id, user) {
 
 async function getInstanceSummary(instance_id, user) {
   const instance = await budgetInstanceRepository.findById(instance_id);
-  assertFound(instance, instance_id);
+  assertFound(instance, instance_id, 'budget instance');
 
   const template = await budgetTemplateRepository.findById(
     instance.template_id,
   );
-  assertFound(template, instance.template_id);
-  assertOwnership(template, user);
+  assertFound(template, instance.template_id, 'budget template');
+  assertOwnership(template, user, 'budget template');
 
   const spent = await transactionRepository.sumExpenseByCategoryAndPeriod(
     template.category_id,

@@ -11,11 +11,7 @@ async function getAllCategories(user) {
 async function getCategoryById(id, user) {
   const category = await categoryRepository.findById(id);
   assertFound(category, id, 'category');
-  assertOwnership(
-    category,
-    user,
-    'You do not have permission to access this category',
-  );
+  assertOwnership(category, user, 'category');
   return category;
 }
 
@@ -30,11 +26,7 @@ async function createCategory(data, user) {
 async function updateCategory(id, data, user) {
   const category = await categoryRepository.findById(id);
   assertFound(category, id, 'category');
-  assertOwnership(
-    category,
-    user,
-    'You do not have permission to access this category',
-  );
+  assertOwnership(category, user, 'category');
 
   const updated = await categoryRepository.update(id, {
     name: data.name,
@@ -47,11 +39,7 @@ async function updateCategory(id, data, user) {
 async function deleteCategory(id, user) {
   const category = await categoryRepository.findById(id);
   assertFound(category, id, 'category');
-  assertOwnership(
-    category,
-    user,
-    'You do not have permission to access this category',
-  );
+  assertOwnership(category, user, 'category');
 
   const deleted = await categoryRepository.remove(id);
   assertFound(deleted, id, 'category');

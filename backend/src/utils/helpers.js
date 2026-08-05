@@ -10,12 +10,9 @@ function assertFound(entity, id, label = 'resource') {
   }
 }
 
-function assertOwnership(entity, user, message) {
+function assertOwnership(entity, user, label = 'resource') {
   if (user.role != 1 && entity.user_id != user.sub) {
-    throw httpError(
-      message || 'You do not have permission to access this resource',
-      403,
-    );
+    throw httpError(`You do not have permission to access this ${label}`, 403);
   }
 }
 
