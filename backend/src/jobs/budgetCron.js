@@ -1,8 +1,9 @@
 const cron = require('node-cron');
 const pool = require('../config/db');
+const logger = require('../utils/logger');
 
 cron.schedule('0 0 1 * *', async () => {
-  console.log('[Cron] Generating budget instances...');
+  logger.info('Generating budget instances...');
 
   const client = await pool.connect();
   try {
@@ -30,15 +31,15 @@ cron.schedule('0 0 1 * *', async () => {
           'INSERT INTO budget_instances (template_id, period_start, period_end) VALUES ($1, $2, $3)',
           [template.id, startStr, endStr],
         );
-        console.log(`[Cron] Instance created for template ${template.id}`);
+        logger.info({ templateId: template.id }, 'budget instance created');
       }
     }
 
     await client.query('COMMIT');
-    console.log('[Cron] Done generating budget instances');
+    logger.info('Done generating budget instances');
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('[Cron] Error:', err);
+    logger.error({ err }, 'budget cron failed');
   } finally {
     client.release();
   }
