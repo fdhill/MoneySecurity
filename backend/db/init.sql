@@ -9,6 +9,14 @@ CREATE TABLE users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE telegrams (
+  user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  chat_id BIGINT UNIQUE,
+  link_token VARCHAR(100),
+  link_token_expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE wallets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

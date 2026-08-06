@@ -9,6 +9,10 @@ const logger = require('./utils/logger');
 
 require('./jobs/budgetCron');
 
+if (process.env.TELEGRAM_BOT_TOKEN) {
+  require('./bots/telegram');
+}
+
 const app = express();
 
 app.use(cors());
