@@ -173,18 +173,8 @@ const transactionWizard = new Scenes.WizardScene(
       return;
     }
 
-    const state = ctx.wizard.state;
     await ctx.reply(
-      [
-        'Konfirmasi transaksi:',
-        `Tipe: ${TYPE_LABELS[state.type]}`,
-        `Dompet: ${state.wallet_name}`,
-        `Kategori: ${state.category_name}`,
-        `Nominal: Rp ${rupiah(state.amount)}`,
-        state.description ? `Catatan: ${state.description}` : null,
-      ]
-        .filter(Boolean)
-        .join('\n'),
+      'Siap disimpan?',
       Markup.inlineKeyboard([
         Markup.button.callback('Simpan', 'confirm'),
         Markup.button.callback('Batal', 'cancel'),
