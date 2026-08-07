@@ -130,7 +130,12 @@ router.get('/me', authenticate, authController.me);
  *       401:
  *         description: Unauthorized
  */
-router.put('/me', authenticate, authUpdateProfile, authController.updateProfile);
+router.put(
+  '/me',
+  authenticate,
+  authUpdateProfile,
+  authController.updateProfile,
+);
 
 /**
  * @swagger
@@ -162,6 +167,55 @@ router.put('/me', authenticate, authUpdateProfile, authController.updateProfile)
  *       401:
  *         description: Invalid old password
  */
-router.put('/me/password', authenticate, authChangePassword, authController.changePassword);
+router.put(
+  '/me/password',
+  authenticate,
+  authChangePassword,
+  authController.changePassword,
+);
+
+/**
+ * @swagger
+ * /auth/me/telegram/link-token:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Generate a one-time Telegram link token
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Link token generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Success'
+ *       401:
+ *         description: Unauthorized
+ */
+router.post(
+  '/me/telegram/link-token',
+  authenticate,
+  authController.telegramLinkToken,
+);
+
+/**
+ * @swagger
+ * /auth/me/telegram/status:
+ *   get:
+ *     tags: [Auth]
+ *     summary: Get Telegram link status
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Telegram link status retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Success'
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/me/telegram/status', authenticate, authController.telegramStatus);
 
 module.exports = router;

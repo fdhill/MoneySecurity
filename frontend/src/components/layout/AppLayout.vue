@@ -2,8 +2,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter, RouterView } from 'vue-router';
 import {
-  LayoutDashboard, ArrowLeftRight, Wallet, Tag, Target,
-  /*MessageCircle,*/ LogOut, Bell, Menu, X,
+  LayoutDashboard, ArrowLeftRight, Wallet, Tag, Target, MessageCircle,
+  LogOut, Bell, Menu, X,
 } from '@lucide/vue';
 import { useAuth } from '@/composables/useAuth';
 
@@ -34,6 +34,7 @@ const NAV_ITEMS = [
   { name: 'categories', label: 'Kategori', icon: Tag },
   { name: 'budget', label: 'Anggaran', icon: Target },
   // { name: 'wa-bot', label: 'Bot WA', icon: MessageCircle },
+  { name: 'telegram-bot', label: 'Bot Telegram', icon: MessageCircle },
 ];
 
 const currentPage = computed(() => {

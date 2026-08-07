@@ -1,5 +1,6 @@
 const authService = require('../services/authService');
 const userService = require('../services/userService');
+const telegramService = require('../services/telegramService');
 const { ok } = require('../utils/response');
 
 async function login(req, res, next) {
@@ -39,4 +40,29 @@ async function changePassword(req, res, next) {
   }
 }
 
-module.exports = { login, me, updateProfile, changePassword };
+async function telegramLinkToken(req, res, next) {
+  try {
+    const result = await telegramService.generateLinkToken(req.user.sub);
+    ok(res, result, 'Telegram link token generated');
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function telegramStatus(req, res, next) {
+  try {
+    const status = await telegramService.getStatus(req.user.sub);
+    ok(res, status, 'Telegram link status retrieved successfully');
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = {
+  login,
+  me,
+  updateProfile,
+  changePassword,
+  telegramLinkToken,
+  telegramStatus,
+};
