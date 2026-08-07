@@ -9,6 +9,7 @@ import WalletsView from '@/views/WalletsView.vue';
 import CategoriesView from '@/views/CategoriesView.vue';
 import BudgetView from '@/views/BudgetView.vue';
 import WaBotView from '@/views/WaBotView.vue';
+import TelegramBotView from '@/views/TelegramBotView.vue';
 
 const routes = [
   {
@@ -28,6 +29,7 @@ const routes = [
       { path: 'categories', name: 'categories', component: CategoriesView },
       { path: 'budget', name: 'budget', component: BudgetView },
       { path: 'wa-bot', name: 'wa-bot', component: WaBotView },
+      { path: 'telegram-bot', name: 'telegram-bot', component: TelegramBotView },
     ],
   },
 ];
