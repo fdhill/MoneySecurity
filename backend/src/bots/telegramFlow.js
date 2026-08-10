@@ -16,8 +16,6 @@ async function cancelIfCommand(ctx) {
   if (text.startsWith('/batal')) {
     await ctx.reply('Transaksi dibatalkan.');
     await ctx.scene.leave();
-  } else {
-    await ctx.reply('Ketik /batal untuk membatalkan, atau lanjutkan wizard.');
   }
   return true;
 }
@@ -50,43 +48,9 @@ const transactionWizard = new Scenes.WizardScene(
     }
     ctx.wizard.state.type = type;
 
-    const wallets = await telegramService.getWallets(ctx.wizard.state.user.id);
-    if (wallets.length === 0) {
-      await ctx.answerCbQuery();
-      await ctx.reply('Belum ada dompet. Buat dompet dulu di aplikasi.');
-      return ctx.scene.leave();
-    }
-    await ctx.answerCbQuery();
-    await ctx.reply(
-      'Pilih dompet:',
-      Markup.inlineKeyboard(
-        wallets.map((wallet) => [
-          Markup.button.callback(wallet.name.slice(0, 60), wallet.id),
-        ]),
-      ),
-    );
-    return ctx.wizard.next();
-  },
-
-  async (ctx) => {
-    if (await cancelIfCommand(ctx)) return;
-    if (!ctx.callbackQuery) {
-      await ctx.reply('Gunakan tombol di bawah untuk memilih dompet.');
-      return;
-    }
-    const walletId = ctx.callbackQuery.data;
-    const wallets = await telegramService.getWallets(ctx.wizard.state.user.id);
-    const wallet = wallets.find((item) => item.id === walletId);
-    if (!wallet) {
-      await ctx.answerCbQuery('Dompet tidak valid');
-      return;
-    }
-    ctx.wizard.state.wallet_id = walletId;
-    ctx.wizard.state.wallet_name = wallet.name;
-
     const categories = await telegramService.getCategories(
       ctx.wizard.state.user.id,
-      ctx.wizard.state.type,
+      type,
     );
     if (categories.length === 0) {
       await ctx.answerCbQuery();
@@ -123,6 +87,40 @@ const transactionWizard = new Scenes.WizardScene(
     }
     ctx.wizard.state.category_id = categoryId;
     ctx.wizard.state.category_name = category.name;
+
+    const wallets = await telegramService.getWallets(ctx.wizard.state.user.id);
+    if (wallets.length === 0) {
+      await ctx.answerCbQuery();
+      await ctx.reply('Belum ada dompet. Buat dompet dulu di aplikasi.');
+      return ctx.scene.leave();
+    }
+    await ctx.answerCbQuery();
+    await ctx.reply(
+      'Pilih dompet:',
+      Markup.inlineKeyboard(
+        wallets.map((wallet) => [
+          Markup.button.callback(wallet.name.slice(0, 60), wallet.id),
+        ]),
+      ),
+    );
+    return ctx.wizard.next();
+  },
+
+  async (ctx) => {
+    if (await cancelIfCommand(ctx)) return;
+    if (!ctx.callbackQuery) {
+      await ctx.reply('Gunakan tombol di bawah untuk memilih dompet.');
+      return;
+    }
+    const walletId = ctx.callbackQuery.data;
+    const wallets = await telegramService.getWallets(ctx.wizard.state.user.id);
+    const wallet = wallets.find((item) => item.id === walletId);
+    if (!wallet) {
+      await ctx.answerCbQuery('Dompet tidak valid');
+      return;
+    }
+    ctx.wizard.state.wallet_id = walletId;
+    ctx.wizard.state.wallet_name = wallet.name;
 
     await ctx.answerCbQuery();
     await ctx.reply('Berapa nominalnya? (angka bulat, contoh: 50000)');
