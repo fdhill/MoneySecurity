@@ -24,7 +24,6 @@ const transactionWizard = new Scenes.WizardScene(
   'transaction-wizard',
 
   async (ctx) => {
-    if (await cancelIfCommand(ctx)) return;
     await ctx.reply(
       'Pilih tipe transaksi:',
       Markup.inlineKeyboard([
