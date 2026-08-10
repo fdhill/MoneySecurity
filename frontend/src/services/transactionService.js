@@ -16,4 +16,18 @@ export const transactionService = {
   remove(id) {
     return api.delete(`/transactions/${id}`);
   },
+  async exportTransactions(params = {}) {
+    const res = await api.get('/export', { params, responseType: 'blob' });
+    const blob = new Blob([res]);
+    if (blob.type.includes('application/json')) {
+      const json = JSON.parse(await blob.text());
+      throw new Error(json.message || 'Export gagal');
+    }
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'transactions.xlsx';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  },
 };
