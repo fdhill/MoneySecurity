@@ -83,6 +83,20 @@ bot.command('batal', async (ctx) => {
   if (ctx.scene.current) await ctx.scene.leave();
 });
 
+bot.on('text', async (ctx) => {
+  const text = ctx.message.text.trim();
+  if (!text || text.startsWith('/')) return;
+  await ctx.reply(
+    [
+      `Halo ${ctx.from.first_name || 'sahabat'}! Saya bot MoneySecurity.`,
+      '',
+      'Berikut perintah yang bisa kamu gunakan:',
+      '',
+      HELP_TEXT.split('\n').slice(2).join('\n'),
+    ].join('\n'),
+  );
+});
+
 bot.catch((err, ctx) => {
   logger.error({ err, from: ctx.from }, 'telegram bot error');
 });
