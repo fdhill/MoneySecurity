@@ -8,8 +8,25 @@ const SELECT_WITH_NAMES = `
   JOIN categories c ON t.category_id = c.id
 `;
 
-async function findAll() {
-  const { rows } = await pool.query(SELECT_WITH_NAMES);
+function withPeriodFilter(baseQuery, params, { start_date, end_date } = {}) {
+  if (start_date && end_date) {
+    params.push(start_date, end_date);
+    return `${baseQuery} AND t.transaction_date BETWEEN $${params.length - 1} AND $${params.length}`;
+  }
+  if (start_date) {
+    params.push(start_date);
+    return `${baseQuery} AND t.transaction_date >= $${params.length}`;
+  }
+  if (end_date) {
+    params.push(end_date);
+    return `${baseQuery} AND t.transaction_date <= $${params.length}`;
+  }
+  return baseQuery;
+}
+
+async function findAll(filters = {}) {
+  const params = [];
+  const { rows } = await pool.query(withPeriodFilter(SELECT_WITH_NAMES, params, filters), params);
   return rows.map((row) => new Transaction(row));
 }
 
@@ -20,10 +37,11 @@ async function findById(id) {
   return rows[0] ? new Transaction(rows[0]) : null;
 }
 
-async function findByUserId(user_id) {
+async function findByUserId(user_id, filters = {}) {
+  const params = [user_id];
   const { rows } = await pool.query(
-    `${SELECT_WITH_NAMES} WHERE t.user_id = $1`,
-    [user_id],
+    withPeriodFilter(`${SELECT_WITH_NAMES} WHERE t.user_id = $1`, params, filters),
+    params,
   );
   return rows.map((row) => new Transaction(row));
 }

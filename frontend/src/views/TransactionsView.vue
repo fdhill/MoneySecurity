@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { Plus, Download, Search, Edit2, Trash2, Briefcase } from '@lucide/vue';
 import TxModal from '@/components/transactions/TxModal.vue';
+import ExportModal from '@/components/transactions/ExportModal.vue';
 import CategoryBadge from '@/components/common/CategoryBadge.vue';
 import { formatIDR, formatShort } from '@/components/common/icons';
 import { transactionService } from '@/services/transactionService';
@@ -21,6 +22,8 @@ const filterWallet = ref('all');
 const filterType = ref('all');
 const showTxModal = ref(false);
 const editingTx = ref(null);
+const showExportModal = ref(false);
+const exporting = ref(false);
 
 async function fetchData() {
   loading.value = true;
@@ -66,6 +69,17 @@ function deleteTx(id) {
 function getCatById(id) { return categories.value.find(c => c.id === id); }
 function getWalById(id) { return wallets.value.find(w => w.id === id); }
 function formatDate(d) { return (d || '').slice(0, 10); }
+
+function exportData(params) {
+  exporting.value = true;
+  transactionService.exportTransactions(params)
+    .then(() => {
+      showToast('Export berhasil diunduh', 'success');
+      showExportModal.value = false;
+    })
+    .catch((e) => showToast(e?.message || 'Export gagal', 'error'))
+    .finally(() => { exporting.value = false; });
+}
 </script>
 
 <template>
@@ -76,8 +90,8 @@ function formatDate(d) { return (d || '').slice(0, 10); }
         <p class="text-sm text-muted-foreground mt-0.5">{{ filtered.length }} transaksi ditemukan</p>
       </div>
       <div class="flex items-center gap-2">
-        <button class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
-          <Download :size="15" /> Export
+        <button @click="showExportModal = true" :disabled="exporting" class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors disabled:opacity-60">
+          <Download :size="15" /> {{ exporting ? 'Mengexport...' : 'Export' }}
         </button>
         <button @click="openAdd" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm">
           <Plus :size="16" /> Tambah
@@ -164,5 +178,6 @@ function formatDate(d) { return (d || '').slice(0, 10); }
     </div>
 
     <TxModal v-if="showTxModal" :categories="categories" :wallets="wallets" :editing="editingTx" @save="saveTx" @close="showTxModal = false; editingTx = null" />
+    <ExportModal v-if="showExportModal" @confirm="exportData" @close="showExportModal = false" />
   </div>
 </template>
