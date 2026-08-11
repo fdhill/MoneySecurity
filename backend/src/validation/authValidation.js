@@ -1,23 +1,7 @@
 const { body } = require('express-validator');
 const validate = require('../middlewares/validate');
 
-const loginRules = [
-  body('whatsapp_number')
-    .trim()
-    .notEmpty()
-    .withMessage('number is required')
-    .bail()
-    .isMobilePhone('id-ID')
-    .withMessage('invalid number'),
-  body('password')
-    .notEmpty()
-    .withMessage('password is required')
-    .bail()
-    .isLength({ max: 72 })
-    .withMessage('password is too long'),
-];
-
-const registerRules = [
+const nameRules = [
   body('name')
     .trim()
     .whitelist('a-zA-Z0-9\\s')
@@ -26,6 +10,9 @@ const registerRules = [
     .bail()
     .isLength({ min: 3, max: 255 })
     .withMessage('name must be between 3 and 255 characters'),
+];
+
+const whatsappNumberRules = [
   body('whatsapp_number')
     .trim()
     .notEmpty()
@@ -35,6 +22,19 @@ const registerRules = [
     .withMessage('invalid number')
     .isLength({ min: 10, max: 20 })
     .withMessage('number length must be between 10 and 20 characters'),
+];
+
+const loginWhatsappRules = [
+  body('whatsapp_number')
+    .trim()
+    .notEmpty()
+    .withMessage('number is required')
+    .bail()
+    .isMobilePhone('id-ID')
+    .withMessage('invalid number'),
+];
+
+const passwordRules = [
   body('password')
     .notEmpty()
     .withMessage('password is required')
@@ -43,33 +43,25 @@ const registerRules = [
     .withMessage('password must be between 8 and 72 characters'),
 ];
 
-const updateProfileRules = [
-  body('name')
-    .trim()
-    .whitelist('a-zA-Z0-9\\s')
+const loginPasswordRules = [
+  body('password')
     .notEmpty()
-    .withMessage('name is required')
+    .withMessage('password is required')
     .bail()
-    .isLength({ min: 3, max: 255 })
-    .withMessage('name must be between 3 and 255 characters'),
-  body('whatsapp_number')
-    .trim()
-    .notEmpty()
-    .withMessage('number is required')
-    .bail()
-    .isMobilePhone('id-ID')
-    .withMessage('invalid number')
-    .isLength({ min: 10, max: 20 })
-    .withMessage('number length must be between 10 and 20 characters'),
+    .isLength({ max: 72 })
+    .withMessage('password is too long'),
 ];
 
-const changePasswordRules = [
+const oldPasswordRules = [
   body('old_password')
     .notEmpty()
     .withMessage('old_password is required')
     .bail()
     .isLength({ max: 72 })
     .withMessage('old_password is too long'),
+];
+
+const newPasswordRules = [
   body('new_password')
     .notEmpty()
     .withMessage('new_password is required')
@@ -79,6 +71,14 @@ const changePasswordRules = [
     .custom((value, { req }) => value !== req.body.old_password)
     .withMessage('new_password must be different from old_password'),
 ];
+
+const loginRules = [...loginWhatsappRules, ...loginPasswordRules];
+
+const registerRules = [...nameRules, ...whatsappNumberRules, ...passwordRules];
+
+const updateProfileRules = [...nameRules, ...whatsappNumberRules];
+
+const changePasswordRules = [...oldPasswordRules, ...newPasswordRules];
 
 const authLogin = [...loginRules, validate];
 const authRegister = [...registerRules, validate];

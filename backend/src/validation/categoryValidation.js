@@ -4,8 +4,11 @@ const validate = require('../middlewares/validate');
 
 const VALID_TYPES = Object.values(Category.TYPE);
 
-const createCategoryRules = [
+const nameRules = [
   body('name').trim().notEmpty().withMessage('name is required'),
+];
+
+const typeRules = [
   body('type')
     .notEmpty()
     .withMessage('type is required')
@@ -13,6 +16,8 @@ const createCategoryRules = [
     .isIn(VALID_TYPES)
     .withMessage('type must be either expense or income'),
 ];
+
+const createCategoryRules = [...nameRules, ...typeRules];
 
 const updateCategoryRules = createCategoryRules;
 

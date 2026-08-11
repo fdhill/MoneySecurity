@@ -4,29 +4,45 @@ const validate = require('../middlewares/validate');
 const VALID_FREQUENCIES = ['monthly', 'weekly', 'yearly'];
 const MAX_AMOUNT = 99999999999999;
 
-const createBudgetRules = [
+const categoryIdRules = [
   body('category_id')
     .notEmpty()
     .withMessage('category_id is required')
     .bail()
     .isUUID()
     .withMessage('category_id must be a valid UUID'),
+];
+
+const amountRules = [
   body('amount')
     .notEmpty()
     .withMessage('amount is required')
     .bail()
     .isInt({ min: 1, max: MAX_AMOUNT })
     .withMessage(`amount must be a positive integer between 1 and ${MAX_AMOUNT}`),
+];
+
+const frequencyRules = [
   body('frequency')
     .notEmpty()
     .withMessage('frequency is required')
     .bail()
     .isIn(VALID_FREQUENCIES)
     .withMessage('frequency must be monthly, weekly, or yearly'),
+];
+
+const recurringRules = [
   body('is_recurring')
     .optional()
     .isBoolean()
     .withMessage('is_recurring must be a boolean'),
+];
+
+const createBudgetRules = [
+  ...categoryIdRules,
+  ...amountRules,
+  ...frequencyRules,
+  ...recurringRules,
 ];
 
 const updateBudgetRules = createBudgetRules;
