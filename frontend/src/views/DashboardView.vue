@@ -38,6 +38,7 @@ function getIcon(name) { return ICON_COMPONENTS[name] || Briefcase; }
 function getCatColor(cat, i) { return CATEGORY_DEFAULTS[cat?.name]?.color || FALLBACK_COLORS[i % FALLBACK_COLORS.length]; }
 function getCatIconName(cat) { return CATEGORY_DEFAULTS[cat?.name]?.icon || 'briefcase'; }
 function getWalletColor(i) { return ['#10b981', '#2563eb', '#00aed6', '#ee4d2d'][i % 4]; }
+function formatDate(d) { return (d || '').slice(0, 10); }
 
 async function fetchData() {
   loading.value = true;
@@ -262,7 +263,7 @@ function saveTx(data) {
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-medium text-foreground truncate">{{ tx.description }}</p>
-              <p class="text-xs text-muted-foreground">{{ tx.transaction_date }}</p>
+              <p class="text-xs text-muted-foreground">{{ formatDate(tx.transaction_date) }}</p>
             </div>
             <span class="text-sm font-bold font-mono" :class="tx.type === 'income' ? 'text-emerald-600' : 'text-rose-500'">
               {{ tx.type === 'income' ? '+' : '-' }}{{ formatShort(Number(tx.amount)) }}
