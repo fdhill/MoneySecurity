@@ -1,7 +1,7 @@
 const { Telegraf, Scenes, session } = require('telegraf');
 const logger = require('../utils/logger');
 const telegramService = require('../services/telegramService');
-const { transactionWizard } = require('./telegramFlow');
+const { transactionWizard, exportWizard } = require('./telegramFlow');
 
 const HELP_TEXT = [
   'Bot MoneySecurity',
@@ -10,6 +10,7 @@ const HELP_TEXT = [
   '/link <KODE> - Hubungkan akun (kode dari aplikasi)',
   '/status - Cek status koneksi',
   '/transaksi - Catat transaksi baru',
+  '/export - Export transaksi ke Excel',
   '/unlink - Putus koneksi akun',
   '/batal - Batalkan proses',
 ].join('\n');
@@ -17,7 +18,7 @@ const HELP_TEXT = [
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
 bot.use(session());
-bot.use(new Scenes.Stage([transactionWizard]).middleware());
+bot.use(new Scenes.Stage([transactionWizard, exportWizard]).middleware());
 
 bot.start((ctx) =>
   ctx.reply(
@@ -75,6 +76,16 @@ bot.command('transaksi', async (ctx) => {
     return ctx.reply('Akun belum terhubung. Kirim /link <KODE> dulu.');
   }
   await ctx.scene.enter('transaction-wizard', {
+    user: { id: user.id, role: user.role, name: user.name },
+  });
+});
+
+bot.command('export', async (ctx) => {
+  const user = await telegramService.getUserByChatId(ctx.chat.id);
+  if (!user) {
+    return ctx.reply('Akun belum terhubung. Kirim /link <KODE> dulu.');
+  }
+  await ctx.scene.enter('export-wizard', {
     user: { id: user.id, role: user.role, name: user.name },
   });
 });

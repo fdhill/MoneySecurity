@@ -1,6 +1,7 @@
 const { Scenes, Markup } = require('telegraf');
 const telegramService = require('../services/telegramService');
 const transactionService = require('../services/transactionService');
+const exportService = require('../services/exportService');
 const logger = require('../utils/logger');
 
 const MAX_AMOUNT = 99999999999999;
@@ -229,4 +230,80 @@ const transactionWizard = new Scenes.WizardScene(
   },
 );
 
-module.exports = { transactionWizard };
+const exportWizard = new Scenes.WizardScene(
+  'export-wizard',
+
+  async (ctx) => {
+    if (await cancelIfCommand(ctx)) return;
+    await ctx.reply(
+      'Export transaksi ke Excel.\n\nTanggal mulai (YYYY-MM-DD) atau tekan tombol Semua untuk export semua data:',
+      Markup.inlineKeyboard([Markup.button.callback('Semua', 'skip')]),
+    );
+    return ctx.wizard.next();
+  },
+
+  async (ctx) => {
+    if (await cancelIfCommand(ctx)) return;
+    if (ctx.callbackQuery && ctx.callbackQuery.data === 'skip') {
+      ctx.wizard.state.start_date = null;
+      await ctx.answerCbQuery();
+    } else if (ctx.message && ctx.message.text) {
+      const value = ctx.message.text.trim();
+      if (!isValidDate(value)) {
+        await ctx.reply('Format tanggal tidak valid. Gunakan YYYY-MM-DD atau tekan Semua.');
+        return;
+      }
+      ctx.wizard.state.start_date = value;
+    } else {
+      await ctx.reply('Kirim tanggal mulai (YYYY-MM-DD) atau tekan tombol Semua.');
+      return;
+    }
+
+    await ctx.reply(
+      'Tanggal selesai (YYYY-MM-DD) atau tekan tombol Semua:',
+      Markup.inlineKeyboard([Markup.button.callback('Semua', 'skip')]),
+    );
+    return ctx.wizard.next();
+  },
+
+  async (ctx) => {
+    if (await cancelIfCommand(ctx)) return;
+    if (ctx.callbackQuery && ctx.callbackQuery.data === 'skip') {
+      ctx.wizard.state.end_date = null;
+      await ctx.answerCbQuery();
+    } else if (ctx.message && ctx.message.text) {
+      const value = ctx.message.text.trim();
+      if (!isValidDate(value)) {
+        await ctx.reply('Format tanggal tidak valid. Gunakan YYYY-MM-DD atau tekan Semua.');
+        return;
+      }
+      ctx.wizard.state.end_date = value;
+    } else {
+      await ctx.reply('Kirim tanggal selesai (YYYY-MM-DD) atau tekan tombol Semua.');
+      return;
+    }
+
+    const state = ctx.wizard.state;
+    const sent = await ctx.reply('Mengexport transaksi...');
+    try {
+      const workbook = await exportService.exportTransactions(
+        { sub: state.user.id, role: state.user.role },
+        { start_date: state.start_date, end_date: state.end_date },
+      );
+      const buffer = await workbook.xlsx.writeBuffer();
+      const today = new Date().toISOString().slice(0, 10);
+      await ctx.replyWithDocument({ source: buffer, filename: `transactions_${today}.xlsx` });
+      await ctx.telegram.deleteMessage(ctx.chat.id, sent.message_id).catch(() => {});
+    } catch (err) {
+      logger.error({ err, userId: state.user.id }, 'telegram export failed');
+      await ctx.reply('Gagal mengexport transaksi. Coba lagi.');
+    }
+    return ctx.scene.leave();
+  },
+);
+
+function isValidDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value));
+}
+
+module.exports = { transactionWizard, exportWizard };
