@@ -10,6 +10,8 @@ const MAX_DESCRIPTION = 500;
 const rupiah = (value) => new Intl.NumberFormat('id-ID').format(Number(value));
 
 const TYPE_LABELS = { expense: 'Pengeluaran', income: 'Pemasukan' };
+const TYPE_BY_LABEL = { pengeluaran: 'expense', pemasukan: 'income' };
+const FULL_TEXT_RE = /^(pengeluaran|pemasukan)_/i;
 
 async function cancelIfCommand(ctx) {
   const text = ctx.message && ctx.message.text;
@@ -306,4 +308,105 @@ function isValidDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value));
 }
 
-module.exports = { transactionWizard, exportWizard };
+function parseFullText(text) {
+  if (!FULL_TEXT_RE.test(text)) return { error: 'not-a-transaction' };
+
+  const parts = text.trim().split('_');
+  const type = TYPE_BY_LABEL[parts[0].toLowerCase()];
+  const categoryName = parts[1];
+  const walletName = parts[2];
+  const amountRaw = parts[3];
+  const description = parts.slice(4).join('_').trim() || null;
+
+  if (!categoryName || !walletName || !amountRaw) {
+    return { error: 'format' };
+  }
+  if (
+    !/^\d+$/.test(amountRaw) ||
+    Number(amountRaw) < 1 ||
+    Number(amountRaw) > MAX_AMOUNT
+  ) {
+    return { error: 'amount' };
+  }
+  return {
+    value: {
+      type,
+      categoryName,
+      walletName,
+      amount: Number(amountRaw),
+      description,
+    },
+  };
+}
+
+async function handleFullTextTransaction(ctx, user, text) {
+  const { error, value } = parseFullText(text);
+  if (error === 'not-a-transaction') return;
+  if (error) {
+    await ctx.reply(
+      error === 'amount'
+        ? `Nominal tidak valid. Gunakan angka bulat positif maksimal ${rupiah(MAX_AMOUNT)}.`
+        : 'Format salah. Gunakan: <tipe>_<kategori>_<dompet>_<nominal>_<catatan>\n' +
+          'Contoh: pengeluaran_makan_cash_50000',
+    );
+    return;
+  }
+
+  const { type, categoryName, walletName, amount, description } = value;
+
+  const categories = await telegramService.getCategories(user.id, type);
+  const category = categories.find(
+    (item) => item.name.toLowerCase() === categoryName.toLowerCase(),
+  );
+  if (!category) {
+    await ctx.reply(`Kategori "${categoryName}" tidak ditemukan untuk tipe ${type}.`);
+    return;
+  }
+
+  const wallets = await telegramService.getWallets(user.id);
+  const wallet = wallets.find(
+    (item) => item.name.toLowerCase() === walletName.toLowerCase(),
+  );
+  if (!wallet) {
+    await ctx.reply(`Dompet "${walletName}" tidak ditemukan.`);
+    return;
+  }
+
+  if (description && description.length > MAX_DESCRIPTION) {
+    await ctx.reply(
+      `Catatan terlalu panjang (maks ${MAX_DESCRIPTION} karakter).`,
+    );
+    return;
+  }
+
+  try {
+    const transaction = await transactionService.createTransaction(
+      {
+        wallet_id: wallet.id,
+        category_id: category.id,
+        amount,
+        type,
+        description,
+      },
+      { sub: user.id, role: user.role },
+    );
+    await ctx.reply(
+      `Transaksi tersimpan:\n${TYPE_LABELS[type]} Rp ${rupiah(transaction.amount)} (${category.name})`,
+    );
+  } catch (err) {
+    logger.error({ err, userId: user.id }, 'telegram full-text transaction failed');
+    const message =
+      err.status === 402
+        ? 'Saldo dompet tidak mencukupi.'
+        : 'Gagal menyimpan transaksi. Coba lagi.';
+    await ctx.reply(message);
+  }
+}
+
+module.exports = {
+  transactionWizard,
+  exportWizard,
+  handleFullTextTransaction,
+  parseFullText,
+  FULL_TEXT_RE,
+};

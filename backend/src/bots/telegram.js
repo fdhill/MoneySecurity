@@ -1,7 +1,12 @@
 const { Telegraf, Scenes, session } = require('telegraf');
 const logger = require('../utils/logger');
 const telegramService = require('../services/telegramService');
-const { transactionWizard, exportWizard } = require('./telegramFlow');
+const {
+  transactionWizard,
+  exportWizard,
+  handleFullTextTransaction,
+  FULL_TEXT_RE,
+} = require('./telegramFlow');
 
 const HELP_TEXT = [
   'Bot MoneySecurity',
@@ -10,6 +15,8 @@ const HELP_TEXT = [
   '/link <KODE> - Hubungkan akun (kode dari aplikasi)',
   '/status - Cek status koneksi',
   '/transaksi - Catat transaksi baru',
+  'Atau kirim langsung: pengeluaran_makan_cash_50000 (tipe_kategori_dompet_nominal)',
+  'Contoh lain: pemasukan_gaji_bank_1500000_bonus',
   '/export - Export transaksi ke Excel',
   '/unlink - Putus koneksi akun',
   '/batal - Batalkan proses',
@@ -97,6 +104,15 @@ bot.command('batal', async (ctx) => {
 bot.on('text', async (ctx) => {
   const text = ctx.message.text.trim();
   if (!text || text.startsWith('/')) return;
+
+  if (FULL_TEXT_RE.test(text)) {
+    const user = await telegramService.getUserByChatId(ctx.chat.id);
+    if (!user) {
+      return ctx.reply('Akun belum terhubung. Kirim /link <KODE> dulu.');
+    }
+    return handleFullTextTransaction(ctx, user, text);
+  }
+
   await ctx.reply(
     [
       `Halo ${ctx.from.first_name || 'sahabat'}! Saya bot MoneySecurity.`,
