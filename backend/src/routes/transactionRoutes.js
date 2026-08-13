@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const transactionController = require('../controllers/transactionController');
-const { transactionCreate, transactionUpdate } = require('../validation/transactionValidation');
+const { transactionCreate, transactionUpdate, transactionList } = require('../validation/transactionValidation');
 
 const router = Router();
 
@@ -12,6 +12,20 @@ const router = Router();
  *     summary: Get all transactions
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Page number (default 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *         description: Items per page (default 20)
  *     responses:
  *       200:
  *         description: Transactions retrieved successfully
@@ -22,7 +36,7 @@ const router = Router();
  *       401:
  *         description: Unauthorized
  */
-router.get('/', transactionController.index);
+router.get('/', transactionList, transactionController.index);
 
 /**
  * @swagger

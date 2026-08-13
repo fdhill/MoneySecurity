@@ -1,12 +1,35 @@
 const pool = require('../config/db');
 const Transaction = require('../models/Transaction');
 
-const SELECT_WITH_NAMES = `
-  SELECT t.*, w.name AS wallet_name, c.name AS category_name
+const FROM_CLAUSE = `
   FROM transactions t
   JOIN wallets w ON t.wallet_id = w.id
   JOIN categories c ON t.category_id = c.id
 `;
+
+const SELECT_WITH_NAMES = `
+  SELECT t.*, w.name AS wallet_name, c.name AS category_name
+  ${FROM_CLAUSE}
+`;
+
+const SELECT_PAGED = `
+  SELECT t.*, w.name AS wallet_name, c.name AS category_name, COUNT(*) OVER() AS total
+  ${FROM_CLAUSE}
+`;
+
+async function findPage({ base, params, page, limit }) {
+  const offset = (page - 1) * limit;
+  params.push(limit, offset);
+  const sql = `${base} ORDER BY t.transaction_date DESC, t.id DESC LIMIT $${params.length - 1} OFFSET $${params.length}`;
+  const { rows } = await pool.query(sql, params);
+  let total = rows.length ? Number(rows[0].total) : 0;
+  if (!rows.length) {
+    const countSql = `SELECT COUNT(*) AS total ${FROM_CLAUSE}${base.replace(SELECT_PAGED, '')}`;
+    const { rows: countRows } = await pool.query(countSql, params.slice(0, -2));
+    total = Number(countRows[0].total);
+  }
+  return { rows: rows.map((row) => new Transaction(row)), total };
+}
 
 function withPeriodFilter(baseQuery, params, { start_date, end_date } = {}) {
   if (start_date && end_date) {
@@ -25,9 +48,10 @@ function withPeriodFilter(baseQuery, params, { start_date, end_date } = {}) {
 }
 
 async function findAll(filters = {}) {
+  const { page = 1, limit = 20 } = filters;
   const params = [];
-  const { rows } = await pool.query(withPeriodFilter(SELECT_WITH_NAMES, params, filters), params);
-  return rows.map((row) => new Transaction(row));
+  const base = withPeriodFilter(`${SELECT_PAGED} WHERE 1=1`, params, filters);
+  return findPage({ base, params, page, limit });
 }
 
 async function findById(id) {
@@ -38,12 +62,10 @@ async function findById(id) {
 }
 
 async function findByUserId(user_id, filters = {}) {
+  const { page = 1, limit = 20 } = filters;
   const params = [user_id];
-  const { rows } = await pool.query(
-    withPeriodFilter(`${SELECT_WITH_NAMES} WHERE t.user_id = $1`, params, filters),
-    params,
-  );
-  return rows.map((row) => new Transaction(row));
+  const base = withPeriodFilter(`${SELECT_PAGED} WHERE t.user_id = $1`, params, filters);
+  return findPage({ base, params, page, limit });
 }
 
 async function create({
@@ -70,7 +92,10 @@ async function create({
   return new Transaction(rows[0]);
 }
 
-async function update(id, { wallet_id, category_id, amount, type, description, transaction_date }) {
+async function update(
+  id,
+  { wallet_id, category_id, amount, type, description, transaction_date },
+) {
   const { rows } = await pool.query(
     'UPDATE transactions SET wallet_id = $1, category_id = $2, amount = $3, type = $4, description = $5, transaction_date = $6 WHERE id = $7 RETURNING *',
     [wallet_id, category_id, amount, type, description, transaction_date, id],
