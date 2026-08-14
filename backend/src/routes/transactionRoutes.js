@@ -24,7 +24,7 @@ const router = Router();
  *         schema:
  *           type: integer
  *           minimum: 1
- *           maximum: 100
+ *           maximum: 1000
  *         description: Items per page (default 20)
  *       - in: query
  *         name: category_id
