@@ -31,18 +31,32 @@ async function findPage({ base, params, page, limit }) {
   return { rows: rows.map((row) => new Transaction(row)), total };
 }
 
-function withPeriodFilter(baseQuery, params, { start_date, end_date } = {}) {
+function withFilters(baseQuery, params, { start_date, end_date, category_id, wallet_id, type, q } = {}) {
   if (start_date && end_date) {
     params.push(start_date, end_date);
-    return `${baseQuery} AND t.transaction_date BETWEEN $${params.length - 1} AND $${params.length}`;
-  }
-  if (start_date) {
+    baseQuery += ` AND t.transaction_date BETWEEN $${params.length - 1} AND $${params.length}`;
+  } else if (start_date) {
     params.push(start_date);
-    return `${baseQuery} AND t.transaction_date >= $${params.length}`;
-  }
-  if (end_date) {
+    baseQuery += ` AND t.transaction_date >= $${params.length}`;
+  } else if (end_date) {
     params.push(end_date);
-    return `${baseQuery} AND t.transaction_date <= $${params.length}`;
+    baseQuery += ` AND t.transaction_date <= $${params.length}`;
+  }
+  if (category_id) {
+    params.push(category_id);
+    baseQuery += ` AND t.category_id = $${params.length}`;
+  }
+  if (wallet_id) {
+    params.push(wallet_id);
+    baseQuery += ` AND t.wallet_id = $${params.length}`;
+  }
+  if (type) {
+    params.push(type);
+    baseQuery += ` AND t.type = $${params.length}`;
+  }
+  if (q) {
+    params.push(`%${q}%`);
+    baseQuery += ` AND t.description ILIKE $${params.length}`;
   }
   return baseQuery;
 }
@@ -50,7 +64,7 @@ function withPeriodFilter(baseQuery, params, { start_date, end_date } = {}) {
 async function findAll(filters = {}) {
   const { page = 1, limit = 20 } = filters;
   const params = [];
-  const base = withPeriodFilter(`${SELECT_PAGED} WHERE 1=1`, params, filters);
+  const base = withFilters(`${SELECT_PAGED} WHERE 1=1`, params, filters);
   return findPage({ base, params, page, limit });
 }
 
@@ -64,7 +78,7 @@ async function findById(id) {
 async function findByUserId(user_id, filters = {}) {
   const { page = 1, limit = 20 } = filters;
   const params = [user_id];
-  const base = withPeriodFilter(`${SELECT_PAGED} WHERE t.user_id = $1`, params, filters);
+  const base = withFilters(`${SELECT_PAGED} WHERE t.user_id = $1`, params, filters);
   return findPage({ base, params, page, limit });
 }
 

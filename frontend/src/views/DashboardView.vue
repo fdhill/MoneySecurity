@@ -43,8 +43,8 @@ function formatDate(d) { return (d || '').slice(0, 10); }
 async function fetchData() {
   loading.value = true;
   try {
-    const [txRes, catRes, walRes, budRes] = await Promise.all([transactionService.list(), categoryService.list(), walletService.list(), budgetService.list()]);
-    transactions.value = (txRes.data || []).map(t => ({ ...t, category_id: t.category?.id, wallet_id: t.wallet?.id }));
+    const [txRes, catRes, walRes, budRes] = await Promise.all([transactionService.list({ limit: 1000 }), categoryService.list(), walletService.list(), budgetService.list()]);
+    transactions.value = (txRes.data?.data || []).map(t => ({ ...t, category_id: t.category?.id, wallet_id: t.wallet?.id }));
     categories.value = (catRes.data || []).map((c, i) => ({ ...c, _color: getCatColor(c, i), _iconName: getCatIconName(c) }));
     wallets.value = walRes.data || [];
     budgets.value = budRes.data || [];

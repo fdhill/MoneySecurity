@@ -26,6 +26,41 @@ const router = Router();
  *           minimum: 1
  *           maximum: 100
  *         description: Items per page (default 20)
+ *       - in: query
+ *         name: category_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by category
+ *       - in: query
+ *         name: wallet_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by wallet
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [expense, income]
+ *         description: Filter by transaction type
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Search in description (ILIKE)
+ *       - in: query
+ *         name: start_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter start date
+ *       - in: query
+ *         name: end_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter end date
  *     responses:
  *       200:
  *         description: Transactions retrieved successfully

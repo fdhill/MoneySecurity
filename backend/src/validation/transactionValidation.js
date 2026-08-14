@@ -86,6 +86,23 @@ const listTransactionRules = [
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage('limit must be between 1 and 100'),
+  query('category_id')
+    .optional()
+    .isUUID()
+    .withMessage('category_id must be a valid UUID'),
+  query('wallet_id')
+    .optional()
+    .isUUID()
+    .withMessage('wallet_id must be a valid UUID'),
+  query('type')
+    .optional()
+    .isIn(VALID_TYPES)
+    .withMessage('type must be either expense or income'),
+  query('q')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('q must not exceed 100 characters'),
 ];
 
 const transactionCreate = [...createTransactionRules, validate];

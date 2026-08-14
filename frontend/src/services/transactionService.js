@@ -1,8 +1,8 @@
 import api from './api';
 
 export const transactionService = {
-  list() {
-    return api.get('/transactions');
+  list(params = {}) {
+    return api.get('/transactions', { params });
   },
   getById(id) {
     return api.get(`/transactions/${id}`);
