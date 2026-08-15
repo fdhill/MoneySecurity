@@ -125,6 +125,47 @@ async function sumExpenseByCategoryAndPeriod(category_id, start, end) {
   return Number(rows[0].total);
 }
 
+async function sumIncomeExpenseByPeriod(user_id, start, end) {
+  const { rows } = await pool.query(
+    `SELECT
+       COALESCE(SUM(amount) FILTER (WHERE type = 'income'), 0)::numeric AS income,
+       COALESCE(SUM(amount) FILTER (WHERE type = 'expense'), 0)::numeric AS expense
+     FROM transactions
+     WHERE user_id = $1 AND transaction_date BETWEEN $2 AND $3`,
+    [user_id, start, end],
+  );
+  return rows[0];
+}
+
+async function sumByMonth(user_id, start, end) {
+  const { rows } = await pool.query(
+    `SELECT
+       to_char(transaction_date, 'YYYY-MM') AS month,
+       COALESCE(SUM(amount) FILTER (WHERE type = 'income'), 0)::numeric AS income,
+       COALESCE(SUM(amount) FILTER (WHERE type = 'expense'), 0)::numeric AS expense
+     FROM transactions
+     WHERE user_id = $1 AND transaction_date BETWEEN $2 AND $3
+     GROUP BY 1
+     ORDER BY 1`,
+    [user_id, start, end],
+  );
+  return rows;
+}
+
+async function sumExpenseByCategory(user_id, limit = 5) {
+  const { rows } = await pool.query(
+    `SELECT c.id AS category_id, c.name, COALESCE(SUM(t.amount), 0)::numeric AS total
+     FROM transactions t
+     JOIN categories c ON t.category_id = c.id
+     WHERE t.user_id = $1 AND t.type = 'expense'
+     GROUP BY c.id, c.name
+     ORDER BY total DESC
+     LIMIT $2`,
+    [user_id, limit],
+  );
+  return rows;
+}
+
 async function remove(id) {
   const { rowCount } = await pool.query(
     'DELETE FROM transactions WHERE id = $1',
@@ -140,5 +181,8 @@ module.exports = {
   create,
   update,
   sumExpenseByCategoryAndPeriod,
+  sumIncomeExpenseByPeriod,
+  sumByMonth,
+  sumExpenseByCategory,
   remove,
 };
