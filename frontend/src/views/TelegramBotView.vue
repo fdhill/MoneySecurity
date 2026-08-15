@@ -224,7 +224,7 @@ onUnmounted(stopTimers)
       <div class="grid gap-4">
         <div v-for="(step, i) in [
           { title: 'Hubungkan akun', desc: 'Buat kode link di halaman ini, lalu kirim /link <KODE> ke bot di Telegram.' },
-          { title: 'Catat transaksi', desc: 'Kirim /transaksi ke bot, lalu pilih tipe, dompet, kategori, dan nominal lewat percakapan.' },
+          { title: 'Catat transaksi', desc: 'Kirim /transaksi untuk panduan bertahap, atau langsung tulis format satu baris seperti pengeluaran_makan_cash_50000.' },
           { title: 'Semua tersinkron', desc: 'Transaksi langsung tersimpan ke akun dan terlihat di aplikasi.' },
         ]" :key="i" class="flex items-start gap-3">
           <div class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">
@@ -244,6 +244,7 @@ onUnmounted(stopTimers)
       <div class="divide-y divide-border">
         <div v-for="cmd in [
           { cmd: '/transaksi', desc: 'Catat transaksi baru (pilih tipe, dompet, kategori, nominal, catatan)' },
+          { cmd: '/export', desc: 'Export transaksi ke Excel (pilih periode)' },
           { cmd: '/link <KODE>', desc: 'Hubungkan akun dengan kode dari halaman ini' },
           { cmd: '/status', desc: 'Cek status koneksi akun' },
           { cmd: '/unlink', desc: 'Putus koneksi akun' },
@@ -257,6 +258,30 @@ onUnmounted(stopTimers)
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Transaksi Cepat -->
+    <div class="bg-card rounded-2xl p-5 border border-border">
+      <h2 class="font-semibold text-foreground mb-3">Transaksi Cepat (Satu Baris)</h2>
+      <p class="text-xs text-muted-foreground mb-4">
+        Tulis transaksi langsung dalam satu baris tanpa percakapan, format:
+        <code class="bg-muted px-1.5 py-0.5 rounded text-[11px] font-mono">&lt;tipe&gt;_&lt;kategori&gt;_&lt;dompet&gt;_&lt;nominal&gt;_&lt;catatan&gt;</code>
+      </p>
+      <div class="space-y-2">
+        <div class="rounded-xl bg-muted/50 border border-border px-4 py-3">
+          <code class="text-xs font-mono text-foreground">pengeluaran_makan_cash_50000</code>
+          <p class="text-xs text-muted-foreground mt-1">Pengeluaran 50.000 dari dompet Cash, kategori Makan.</p>
+        </div>
+        <div class="rounded-xl bg-muted/50 border border-border px-4 py-3">
+          <code class="text-xs font-mono text-foreground">pemasukan_gaji_bank_1500000_bonus</code>
+          <p class="text-xs text-muted-foreground mt-1">Pemasukan 1.500.000 ke dompet Bank, kategori Gaji, catatan "bonus".</p>
+        </div>
+      </div>
+      <ul class="mt-4 space-y-1.5 text-xs text-muted-foreground list-disc list-inside">
+        <li>Tipe: <code class="bg-muted px-1 py-0.5 rounded font-mono">pengeluaran</code> atau <code class="bg-muted px-1 py-0.5 rounded font-mono">pemasukan</code></li>
+        <li>Nama kategori &amp; dompet harus sesuai dengan data akun (tidak peduli huruf besar/kecil)</li>
+        <li>Nominal harus angka bulat positif</li>
+      </ul>
     </div>
 
     <!-- Catatan -->
