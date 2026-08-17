@@ -1,7 +1,8 @@
 const budgetTemplateRepository = require('../repositories/budgetTemplateRepository');
 const budgetInstanceRepository = require('../repositories/budgetInstanceRepository');
 const transactionRepository = require('../repositories/transactionRepository');
-const { assertFound, assertOwnership } = require('../utils/helpers');
+const categoryRepository = require('../repositories/categoryRepository');
+const { assertFound, assertOwnership, httpError } = require('../utils/helpers');
 
 function calculatePeriod(frequency) {
   const now = new Date();
@@ -42,6 +43,13 @@ async function getTemplateById(id, user) {
 }
 
 async function createTemplate(data, user) {
+  const category = await categoryRepository.findById(data.category_id);
+  assertFound(category, data.category_id, 'category');
+  assertOwnership(category, user, 'category');
+  if(category.type !== 'expense'){
+    throw httpError('The type must be expense', 400);
+  }
+
   return budgetTemplateRepository.create({
     user_id: user.sub,
     category_id: data.category_id,

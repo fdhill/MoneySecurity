@@ -26,6 +26,10 @@ const selectedCategory = computed(() =>
   props.categories.find(c => c.id === selectedCategoryId.value) ?? null
 )
 
+const expenseCategories = computed(() =>
+  props.categories.filter(c => c.type === 'expense')
+)
+
 const previewText = computed(() => {
   if (!selectedCategory.value || !amount.value) return null
   const catLabel = selectedCategory.value.name ?? selectedCategory.value.label ?? ''
@@ -77,7 +81,7 @@ function save() {
             >
               <option :value="null" disabled>Pilih kategori</option>
               <option
-                v-for="cat in categories"
+                v-for="cat in expenseCategories"
                 :key="cat.id"
                 :value="cat.id"
               >
