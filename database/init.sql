@@ -5,7 +5,8 @@ CREATE TABLE users (
   name VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL,
   role INTEGER NOT NULL,
-  whatsapp_number VARCHAR(20) NOT NULL UNIQUE,
+  whatsapp_number VARCHAR(20) UNIQUE,
+  email VARCHAR(255) NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

@@ -19,16 +19,25 @@ async function createUser(data, user) {
     data.role = 2;
   }
 
-  const existing = await userRepository.findByWhatsappNumber(
-    data.whatsapp_number,
+  if (data.whatsapp_number) {
+    const existing = await userRepository.findByWhatsappNumber(
+      data.whatsapp_number,
+    );
+    if (existing) {
+      throw httpError('whatsapp_number already used', 409);
+    }
+  }
+  const existing = await userRepository.findByEmail(
+    data.email,
   );
   if (existing) {
-    throw httpError('whatsapp_number already used', 409);
+    throw httpError('email already used', 409);
   }
 
   const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
   return userRepository.create({
     name: data.name,
+    email: data.email,
     whatsapp_number: data.whatsapp_number,
     password: hashedPassword,
     role: data.role,
