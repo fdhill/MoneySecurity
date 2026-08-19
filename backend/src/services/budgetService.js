@@ -46,7 +46,7 @@ async function createTemplate(data, user) {
   const category = await categoryRepository.findById(data.category_id);
   assertFound(category, data.category_id, 'category');
   assertOwnership(category, user, 'category');
-  if(category.type !== 'expense'){
+  if (category.type !== 'expense') {
     throw httpError('The type must be expense', 400);
   }
 
