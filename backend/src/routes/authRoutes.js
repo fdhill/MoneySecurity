@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const authController = require('../controllers/authController');
+const otpController = require('../controllers/otpController');
 const userController = require('../controllers/userController');
 const { authenticate } = require('../middlewares/authenticate');
 const {
@@ -7,6 +8,8 @@ const {
   authRegister,
   authUpdateProfile,
   authChangePassword,
+  authRequestOtp,
+  authVerifyOtp,
 } = require('../validation/authValidation');
 
 const router = Router();
@@ -47,6 +50,70 @@ const router = Router();
  *         description: WhatsApp number already used
  */
 router.post('/register', authRegister, userController.store);
+
+/**
+ * @swagger
+ * /auth/request-otp:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Request OTP code for registration
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@gmail.com
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *       400:
+ *         description: Validation error
+ *       429:
+ *         description: Too many OTP requests
+ */
+router.post('/request-otp', authRequestOtp, otpController.requestOtp);
+
+/**
+ * @swagger
+ * /auth/verify-otp:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Verify OTP and complete registration
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, code, name, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@gmail.com
+ *               code:
+ *                 type: string
+ *                 example: 123456
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               password:
+ *                 type: string
+ *                 example: secret123
+ *               whatsapp_number:
+ *                 type: string
+ *                 example: 6281234567890
+ *     responses:
+ *       201:
+ *         description: Registration successful
+ *       400:
+ *         description: Validation error or OTP invalid/expired
+ */
+router.post('/verify-otp', authVerifyOtp, otpController.verifyOtp);
 
 /**
  * @swagger

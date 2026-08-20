@@ -21,6 +21,7 @@
     "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
     "node-cron": "^4.6.0",
+    "nodemailer": "^9.0.5",
     "pg": "^8.22.0",
     "pino": "^10.3.1",
     "swagger-jsdoc": "^6.3.0",
