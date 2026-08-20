@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+const otpRepository = require('../repositories/otpRepository');
 const nodemailer = require('nodemailer');
 const { httpError } = require('../utils/helpers');
 
@@ -22,14 +22,9 @@ function generateCode() {
 
 async function requestOtp(email, purpose = 'register') {
   const now = new Date();
+  const since = new Date(now - OTP_RATE_LIMIT_MINUTES * 60 * 1000);
 
-  const { rows: recent } = await pool.query(
-    `SELECT created_at FROM otps
-     WHERE email = $1 AND purpose = $2 AND created_at > $3
-     ORDER BY created_at DESC LIMIT 1`,
-    [email, purpose, new Date(now - OTP_RATE_LIMIT_MINUTES * 60 * 1000)],
-  );
-
+  const recent = await otpRepository.findRecentByEmail(email, purpose, since);
   if (recent.length > 0) {
     throw httpError('Too many OTP requests', 429);
   }
@@ -37,11 +32,7 @@ async function requestOtp(email, purpose = 'register') {
   const code = generateCode();
   const expiresAt = new Date(now.getTime() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
-  await pool.query(
-    `INSERT INTO otps (email, code, purpose, expires_at)
-     VALUES ($1, $2, $3, $4)`,
-    [email, code, purpose, expiresAt],
-  );
+  await otpRepository.create({ email, code, purpose, expires_at: expiresAt });
 
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
@@ -61,14 +52,7 @@ async function requestOtp(email, purpose = 'register') {
 }
 
 async function verifyOtp(email, code, purpose = 'register') {
-  const { rows } = await pool.query(
-    `SELECT * FROM otps
-     WHERE email = $1 AND purpose = $2 AND used = false
-     ORDER BY created_at DESC LIMIT 1`,
-    [email, purpose],
-  );
-
-  const otp = rows[0];
+  const otp = await otpRepository.findLatestUnused(email, purpose);
   if (!otp) throw httpError('OTP invalid', 400);
 
   if (new Date() > new Date(otp.expires_at)) {
@@ -76,19 +60,16 @@ async function verifyOtp(email, code, purpose = 'register') {
   }
 
   if (otp.attempts >= OTP_MAX_ATTEMPTS) {
-    await pool.query('UPDATE otps SET used = true WHERE id = $1', [otp.id]);
+    await otpRepository.markUsed(otp.id);
     throw httpError('Too many OTP attempts', 400);
   }
 
   if (otp.code !== code) {
-    await pool.query(
-      'UPDATE otps SET attempts = attempts + 1 WHERE id = $1',
-      [otp.id],
-    );
+    await otpRepository.incrementAttempts(otp.id);
     throw httpError('OTP invalid', 400);
   }
 
-  await pool.query('UPDATE otps SET used = true WHERE id = $1', [otp.id]);
+  await otpRepository.markUsed(otp.id);
 
   return true;
 }
