@@ -38,7 +38,7 @@ async function create({ name, email, whatsapp_number, password, role }) {
 async function update(id, { name, whatsapp_number }) {
   const { rows } = await pool.query(
     'UPDATE users SET name = $1, whatsapp_number = $2 WHERE id = $3 RETURNING *',
-    [name, whatsapp_number, id],
+    [name, whatsapp_number || null, id],
   );
   return rows[0] ? new User(rows[0]) : null;
 }

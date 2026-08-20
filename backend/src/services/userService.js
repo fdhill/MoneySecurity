@@ -45,9 +45,11 @@ async function createUser(data, user) {
 }
 
 async function updateUser(id, { name, whatsapp_number }) {
-  const existing = await userRepository.findByWhatsappNumber(whatsapp_number);
-  if (existing && existing.id !== id) {
-    throw httpError('whatsapp_number already used', 409);
+  if (whatsapp_number) {
+    const existing = await userRepository.findByWhatsappNumber(whatsapp_number);
+    if (existing && existing.id !== id) {
+      throw httpError('whatsapp_number already used', 409);
+    }
   }
 
   const user = await userRepository.update(id, { name, whatsapp_number });
@@ -56,9 +58,11 @@ async function updateUser(id, { name, whatsapp_number }) {
 }
 
 async function updateProfile(user, { name, whatsapp_number }) {
-  const existing = await userRepository.findByWhatsappNumber(whatsapp_number);
-  if (existing && existing.id !== user.sub) {
-    throw httpError('whatsapp_number already used', 409);
+  if (whatsapp_number) {
+    const existing = await userRepository.findByWhatsappNumber(whatsapp_number);
+    if (existing && existing.id !== user.sub) {
+      throw httpError('whatsapp_number already used', 409);
+    }
   }
 
   const updated = await userRepository.update(user.sub, {

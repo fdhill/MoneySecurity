@@ -3,18 +3,18 @@ const userRepository = require('../repositories/userRepository');
 const { sign } = require('../config/jwt');
 const {httpError} = require('../utils/helpers');
 
-async function login({ whatsapp_number, password }) {
-  const user = await userRepository.findByWhatsappNumber(whatsapp_number);
-  if (!user) throw httpError('Invalid number or password', 401);
+async function login({ email, password }) {
+  const user = await userRepository.findByEmail(email);
+  if (!user) throw httpError('Invalid email or password', 401);
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw httpError('Invalid number or password', 401);
+  if (!isMatch) throw httpError('Invalid email or password', 401);
 
   const payload = {
     sub: user.id,
     name: user.name,
     role: user.role,
-    number: user.whatsapp_number,
+    email: user.email,
   };
 
   const token = sign(payload);

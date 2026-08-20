@@ -105,7 +105,7 @@ function handleLogout() {
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-xs font-semibold text-sidebar-fg truncate">{{ user?.name || 'User' }}</p>
-            <p class="text-xs text-sidebar-fg/40 truncate">{{ user?.whatsapp_number || '' }}</p>
+            <p class="text-xs text-sidebar-fg/40 truncate">{{ user?.email || '' }}</p>
           </div>
           <button @click="handleLogout" title="Keluar"
             class="p-1 rounded-lg hover:bg-sidebar-accent text-sidebar-fg/40 hover:text-sidebar-fg transition-colors">

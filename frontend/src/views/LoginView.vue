@@ -7,7 +7,7 @@ import { Banknote, Eye, EyeOff } from '@lucide/vue';
 const router = useRouter();
 const { login } = useAuth();
 
-const phone = ref('');
+const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
 const loading = ref(false);
@@ -15,16 +15,16 @@ const error = ref('');
 
 async function handleLogin() {
   error.value = '';
-  if (!phone.value || !password.value) {
-    error.value = 'Nomor WhatsApp dan password harus diisi';
+  if (!email.value || !password.value) {
+    error.value = 'Email dan password harus diisi';
     return;
   }
   loading.value = true;
   try {
-    await login(phone.value, password.value);
+    await login(email.value, password.value);
     router.push('/');
   } catch (e) {
-    error.value = e.message || 'Login gagal. Periksa nomor dan password.';
+    error.value = e.message || 'Login gagal. Periksa email dan password.';
   } finally {
     loading.value = false;
   }
@@ -49,8 +49,8 @@ async function handleLogin() {
 
         <form @submit.prevent="handleLogin" class="flex flex-col gap-4">
           <div>
-            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Nomor WhatsApp</label>
-            <input v-model="phone" type="text" placeholder="08xxxxxxxxxx"
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Email</label>
+            <input v-model="email" type="email" placeholder="email@contoh.com"
               class="w-full px-3.5 py-2.5 rounded-xl border border-border bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
 
