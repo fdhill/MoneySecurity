@@ -16,43 +16,6 @@ const router = Router();
 
 /**
  * @swagger
- * /auth/register:
- *   post:
- *     tags: [Auth]
- *     summary: Register a new user
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [name, whatsapp_number, password]
- *             properties:
- *               name:
- *                 type: string
- *                 example: John Doe
- *               whatsapp_number:
- *                 type: string
- *                 example: 6281234567890
- *               password:
- *                 type: string
- *                 example: secret123
- *     responses:
- *       201:
- *         description: User registered successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Success'
- *       400:
- *         description: Validation error
- *       409:
- *         description: WhatsApp number already used
- */
-router.post('/register', authRegister, userController.store);
-
-/**
- * @swagger
  * /auth/request-otp:
  *   post:
  *     tags: [Auth]
