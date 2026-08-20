@@ -1,4 +1,5 @@
 const otpRepository = require('../repositories/otpRepository');
+const userRepository = require('../repositories/userRepository');
 const nodemailer = require('nodemailer');
 const { httpError } = require('../utils/helpers');
 
@@ -21,6 +22,13 @@ function generateCode() {
 }
 
 async function requestOtp(email, purpose = 'register') {
+  if (purpose === 'register') {
+    const existing = await userRepository.findByEmail(email);
+    if (existing) {
+      throw httpError('email already used', 409);
+    }
+  }
+
   const now = new Date();
   const since = new Date(now - OTP_RATE_LIMIT_MINUTES * 60 * 1000);
 
