@@ -3,9 +3,9 @@ const userRepository = require('../repositories/userRepository');
 const nodemailer = require('nodemailer');
 const { httpError } = require('../utils/helpers');
 
-const OTP_EXPIRY_MINUTES = 5;
-const OTP_MAX_ATTEMPTS = 3;
-const OTP_RATE_LIMIT_MINUTES = 1;
+const OTP_EXPIRY_MINUTES = Number(process.env.OTP_EXPIRY_MINUTES) || 5;
+const OTP_MAX_ATTEMPTS = Number(process.env.OTP_MAX_ATTEMPTS) || 3;
+const OTP_RATE_LIMIT_MINUTES = Number(process.env.OTP_RATE_LIMIT_MINUTES) || 1;
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
