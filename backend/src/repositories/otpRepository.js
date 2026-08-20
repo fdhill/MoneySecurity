@@ -39,10 +39,18 @@ async function incrementAttempts(id) {
   );
 }
 
+async function updateOtp(id, { code, expires_at }) {
+  await pool.query(
+    'UPDATE otps SET code = $1, expires_at = $2, attempts = 0, used = false WHERE id = $3',
+    [code, expires_at, id],
+  );
+}
+
 module.exports = {
   findRecentByEmail,
   create,
   findLatestUnused,
+  updateOtp,
   markUsed,
   incrementAttempts,
 };

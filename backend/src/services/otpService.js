@@ -40,7 +40,12 @@ async function requestOtp(email, purpose = 'register') {
   const code = generateCode();
   const expiresAt = new Date(now.getTime() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
-  await otpRepository.create({ email, code, purpose, expires_at: expiresAt });
+  const existingOtp = await otpRepository.findLatestUnused(email, purpose);
+  if (existingOtp) {
+    await otpRepository.updateOtp(existingOtp.id, { code, expires_at: expiresAt });
+  } else {
+    await otpRepository.create({ email, code, purpose, expires_at: expiresAt });
+  }
 
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
