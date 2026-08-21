@@ -6,8 +6,8 @@ const token = ref(localStorage.getItem('token') || '');
 
 const isAuthenticated = computed(() => !!token.value);
 
-async function login(whatsapp_number, password) {
-  const res = await authService.login(whatsapp_number, password);
+async function login(email, password) {
+  const res = await authService.login(email, password);
   token.value = res.data.token;
   user.value = res.data.user;
   localStorage.setItem('token', res.data.token);

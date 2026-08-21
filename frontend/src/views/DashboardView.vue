@@ -8,9 +8,7 @@ import BudgetWidget from '@/components/dashboard/BudgetWidget.vue';
 import TxModal from '@/components/transactions/TxModal.vue';
 import { formatShort, formatIDR } from '@/components/common/icons';
 import { transactionService } from '@/services/transactionService';
-import { categoryService } from '@/services/categoryService';
-import { walletService } from '@/services/walletService';
-import { budgetService } from '@/services/budgetService';
+import { dashboardService } from '@/services/dashboardService';
 import { useToast } from '@/composables/useToast';
 
 const { showToast } = useToast();
@@ -18,11 +16,14 @@ const { showToast } = useToast();
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, ChartTooltip, ChartLegend, LineController, DoughnutController);
 
 const router = useRouter();
-const transactions = ref([]);
 const categories = ref([]);
 const wallets = ref([]);
 const budgets = ref([]);
 const budgetSummaries = ref([]);
+const totals = ref({ income: 0, expense: 0 });
+const cashflow = ref([]);
+const categoryExpense = ref([]);
+const recentTransactions = ref([]);
 const loading = ref(true);
 const showTxModal = ref(false);
 const cashChartEl = ref(null);
@@ -43,30 +44,16 @@ function formatDate(d) { return (d || '').slice(0, 10); }
 async function fetchData() {
   loading.value = true;
   try {
-    const [txRes, catRes, walRes, budRes] = await Promise.all([transactionService.list(), categoryService.list(), walletService.list(), budgetService.list()]);
-    transactions.value = (txRes.data || []).map(t => ({ ...t, category_id: t.category?.id, wallet_id: t.wallet?.id }));
-    categories.value = (catRes.data || []).map((c, i) => ({ ...c, _color: getCatColor(c, i), _iconName: getCatIconName(c) }));
-    wallets.value = walRes.data || [];
-    budgets.value = budRes.data || [];
-
-    // Fetch budget summaries
-    const summaryPromises = budgets.value.map(async (budget) => {
-      try {
-        const instanceRes = await budgetService.getActiveInstance(budget.id);
-        const instance = instanceRes.data;
-        if (instance && instance.id) {
-          const summaryRes = await budgetService.getInstanceSummary(instance.id);
-          return summaryRes.data;
-        }
-        return null;
-      } catch (e) {
-        console.error(`Failed to fetch summary for budget ${budget.id}:`, e);
-        return null;
-      }
-    });
-
-    const summaries = await Promise.all(summaryPromises);
-    budgetSummaries.value = summaries.filter(s => s !== null);
+    const res = await dashboardService.get();
+    const data = res.data;
+    wallets.value = data.wallets || [];
+    categories.value = (data.categories || []).map((c, i) => ({ ...c, _color: getCatColor(c, i), _iconName: getCatIconName(c) }));
+    budgets.value = data.budgets || [];
+    budgetSummaries.value = data.budgetSummaries || [];
+    totals.value = data.totals || { income: 0, expense: 0 };
+    cashflow.value = data.cashflow || [];
+    categoryExpense.value = data.categoryExpense || [];
+    recentTransactions.value = data.recentTransactions || [];
   } catch (e) { console.error('Fetch error:', e); } finally { loading.value = false; }
 }
 
@@ -130,26 +117,17 @@ onBeforeUnmount(() => {
 
 const now = new Date();
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-const totalIncome = computed(() => transactions.value.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0));
-const totalExpense = computed(() => transactions.value.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0));
+const totalIncome = computed(() => Number(totals.value.income || 0));
+const totalExpense = computed(() => Number(totals.value.expense || 0));
 const totalBalance = computed(() => wallets.value.reduce((s, w) => s + Number(w.balance), 0));
 
 const areaChartData = computed(() => {
-  const data = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    data.push({
-      name: MONTHS[d.getMonth()],
-      income: transactions.value.filter(t => t.type === 'income' && t.transaction_date?.startsWith(key)).reduce((s, t) => s + Number(t.amount), 0),
-      expense: transactions.value.filter(t => t.type === 'expense' && t.transaction_date?.startsWith(key)).reduce((s, t) => s + Number(t.amount), 0),
-    });
-  }
+  const flow = cashflow.value || [];
   return {
-    labels: data.map(d => d.name),
+    labels: flow.map((d) => MONTHS[Number(d.month.slice(5, 7)) - 1]),
     datasets: [
-      { label: 'Pemasukan', data: data.map(d => d.income), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.3 },
-      { label: 'Pengeluaran', data: data.map(d => d.expense), borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.3 },
+      { label: 'Pemasukan', data: flow.map((d) => Number(d.income)), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.3 },
+      { label: 'Pengeluaran', data: flow.map((d) => Number(d.expense)), borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.3 },
     ],
   };
 });
@@ -164,11 +142,14 @@ const lineChartOptions = {
   scales: { x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#6b7a99' } }, y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 }, color: '#6b7a99', callback: (v) => `${(v / 1000000).toFixed(1)}jt` } } },
 };
 
-const pieData = computed(() => categories.value.slice(0, 5).map(cat => ({
-  name: cat.name,
-  value: transactions.value.filter(t => t.category_id === cat.id && t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0),
-  color: cat._color,
-})).filter(d => d.value > 0));
+const pieData = computed(() => (categoryExpense.value || []).map((d, i) => {
+  const cat = categories.value.find((c) => c.id === d.category_id);
+  return {
+    name: d.name,
+    value: Number(d.total),
+    color: cat?._color || FALLBACK_COLORS[i % FALLBACK_COLORS.length],
+  };
+}).filter(d => d.value > 0));
 
 const pieChartData = computed(() => ({
   labels: pieData.value.map(d => d.name),
@@ -183,7 +164,7 @@ const pieChartOptions = {
 
 watch([areaChartData, pieChartData], syncCharts);
 
-const recentTx = computed(() => [...transactions.value].sort((a, b) => (b.transaction_date || '').localeCompare(a.transaction_date || '')).slice(0, 5));
+const recentTx = computed(() => recentTransactions.value);
 
 function saveTx(data) {
   transactionService.create(data).then((res) => {

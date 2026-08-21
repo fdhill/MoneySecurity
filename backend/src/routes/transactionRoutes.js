@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const transactionController = require('../controllers/transactionController');
-const { transactionCreate, transactionUpdate } = require('../validation/transactionValidation');
+const { transactionCreate, transactionUpdate, transactionList } = require('../validation/transactionValidation');
 
 const router = Router();
 
@@ -12,6 +12,55 @@ const router = Router();
  *     summary: Get all transactions
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Page number (default 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 1000
+ *         description: Items per page (default 20)
+ *       - in: query
+ *         name: category_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by category
+ *       - in: query
+ *         name: wallet_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by wallet
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [expense, income]
+ *         description: Filter by transaction type
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Search in description (ILIKE)
+ *       - in: query
+ *         name: start_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter start date
+ *       - in: query
+ *         name: end_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter end date
  *     responses:
  *       200:
  *         description: Transactions retrieved successfully
@@ -22,7 +71,7 @@ const router = Router();
  *       401:
  *         description: Unauthorized
  */
-router.get('/', transactionController.index);
+router.get('/', transactionList, transactionController.index);
 
 /**
  * @swagger

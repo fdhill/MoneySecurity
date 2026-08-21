@@ -1,4 +1,4 @@
-const { body } = require('express-validator');
+const { body, query } = require('express-validator');
 const Transaction = require('../models/Transaction');
 const validate = require('../middlewares/validate');
 
@@ -77,7 +77,36 @@ const createTransactionRules = [
 
 const updateTransactionRules = createTransactionRules;
 
+const listTransactionRules = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 1000 })
+    .withMessage('limit must be between 1 and 1000'),
+  query('category_id')
+    .optional()
+    .isUUID()
+    .withMessage('category_id must be a valid UUID'),
+  query('wallet_id')
+    .optional()
+    .isUUID()
+    .withMessage('wallet_id must be a valid UUID'),
+  query('type')
+    .optional()
+    .isIn(VALID_TYPES)
+    .withMessage('type must be either expense or income'),
+  query('q')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('q must not exceed 100 characters'),
+];
+
 const transactionCreate = [...createTransactionRules, validate];
 const transactionUpdate = [...updateTransactionRules, validate];
+const transactionList = [...listTransactionRules, validate];
 
-module.exports = { transactionCreate, transactionUpdate };
+module.exports = { transactionCreate, transactionUpdate, transactionList };

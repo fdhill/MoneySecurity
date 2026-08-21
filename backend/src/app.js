@@ -4,7 +4,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const routes = require('./routes');
 const errorHandler = require('./middlewares/errorHandler');
-const {fail} = require('./utils/response');
+const { fail } = require('./utils/response');
 const logger = require('./utils/logger');
 
 require('./jobs/budgetCron');
@@ -21,15 +21,17 @@ app.use(express.json());
 app.use((req, res, next) => {
   const start = process.hrtime.bigint();
   res.on('finish', () => {
-    logger.info(
-      {
-        method: req.method,
-        path: req.originalUrl,
-        status: res.statusCode,
-        durationMs: Number(process.hrtime.bigint() - start) / 1e6,
-      },
-      'request',
-    );
+    if (res.statusCode >= 400) {
+      logger.info(
+        {
+          method: req.method,
+          path: req.originalUrl,
+          status: res.statusCode,
+          durationMs: Number(process.hrtime.bigint() - start) / 1e6,
+        },
+        'request',
+      );
+    }
   });
   next();
 });

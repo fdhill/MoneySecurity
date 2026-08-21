@@ -12,26 +12,25 @@ const nameRules = [
     .withMessage('name must be between 3 and 255 characters'),
 ];
 
-const whatsappNumberRules = [
-  body('whatsapp_number')
+const emailRules = [
+  body('email')
     .trim()
     .notEmpty()
-    .withMessage('number is required')
+    .withMessage('email is required')
     .bail()
+    .isEmail()
+    .withMessage('invalid email')
+    .normalizeEmail(),
+];
+
+const optionalWhatsappRules = [
+  body('whatsapp_number')
+    .optional({ values: 'falsy' })
+    .trim()
     .isMobilePhone('id-ID')
     .withMessage('invalid number')
     .isLength({ min: 10, max: 20 })
     .withMessage('number length must be between 10 and 20 characters'),
-];
-
-const loginWhatsappRules = [
-  body('whatsapp_number')
-    .trim()
-    .notEmpty()
-    .withMessage('number is required')
-    .bail()
-    .isMobilePhone('id-ID')
-    .withMessage('invalid number'),
 ];
 
 const passwordRules = [
@@ -72,11 +71,11 @@ const newPasswordRules = [
     .withMessage('new_password must be different from old_password'),
 ];
 
-const loginRules = [...loginWhatsappRules, ...loginPasswordRules];
+const loginRules = [...emailRules, ...loginPasswordRules];
 
-const registerRules = [...nameRules, ...whatsappNumberRules, ...passwordRules];
+const registerRules = [...nameRules, ...emailRules, ...passwordRules, ...optionalWhatsappRules];
 
-const updateProfileRules = [...nameRules, ...whatsappNumberRules];
+const updateProfileRules = [...nameRules, ...optionalWhatsappRules];
 
 const changePasswordRules = [...oldPasswordRules, ...newPasswordRules];
 

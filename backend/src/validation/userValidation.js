@@ -12,12 +12,21 @@ const nameRules = [
     .withMessage('name must be between 3 and 255 characters'),
 ];
 
-const whatsappNumberRules = [
-  body('whatsapp_number')
+const emailRules = [
+  body('email')
     .trim()
     .notEmpty()
-    .withMessage('number is required')
+    .withMessage('email is required')
     .bail()
+    .isEmail()
+    .withMessage('invalid email')
+    .normalizeEmail(),
+];
+
+const optionalWhatsappRules = [
+  body('whatsapp_number')
+    .optional({ values: 'falsy' })
+    .trim()
     .isMobilePhone('id-ID')
     .withMessage('invalid number')
     .isLength({ min: 10, max: 20 })
@@ -26,7 +35,8 @@ const whatsappNumberRules = [
 
 const createUserRules = [
   ...nameRules,
-  ...whatsappNumberRules,
+  ...emailRules,
+  ...optionalWhatsappRules,
   body('password')
     .notEmpty()
     .withMessage('password is required')
@@ -43,7 +53,7 @@ const createUserRules = [
     .withMessage('invalid role, can only be 1 or 2'),
 ];
 
-const updateUserRules = [...nameRules, ...whatsappNumberRules];
+const updateUserRules = [...nameRules, ...optionalWhatsappRules];
 
 const userCreate = [...createUserRules, validate];
 const userUpdate = [...updateUserRules, validate];

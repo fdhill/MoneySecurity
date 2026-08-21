@@ -20,10 +20,13 @@ const MESSAGE_MAP = {
     'Kategori, jumlah, dan frekuensi wajib diisi',
   'amount and frequency are required': 'Jumlah dan frekuensi wajib diisi',
   'number and password are required': 'Nomor dan password wajib diisi',
-  'Invalid number or password': 'Nomor atau password salah',
+  'email is required': 'Email wajib diisi',
+  'invalid email': 'Email tidak valid',
+  'Invalid email or password': 'Email atau password salah',
   'Invalid password': 'Password salah',
   'Access token is missing': 'Token akses tidak ditemukan',
   'whatsapp_number already used': 'Nomor whatsapp sudah digunakan',
+  'email already used': 'Email sudah digunakan',
   'Route not found': 'Halaman tidak ditemukan',
 };
 

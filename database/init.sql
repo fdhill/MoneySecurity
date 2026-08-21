@@ -5,7 +5,8 @@ CREATE TABLE users (
   name VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL,
   role INTEGER NOT NULL,
-  whatsapp_number VARCHAR(20) NOT NULL UNIQUE,
+  whatsapp_number VARCHAR(20) UNIQUE,
+  email VARCHAR(255) NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -72,3 +73,16 @@ CREATE INDEX idx_transactions_category_id ON transactions(category_id);
 CREATE INDEX idx_budget_templates_user_id ON budget_templates(user_id);
 CREATE INDEX idx_budget_instances_template_id ON budget_instances(template_id);
 CREATE INDEX idx_budget_instances_period ON budget_instances(period_start, period_end);
+
+CREATE TABLE otps (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email VARCHAR(255) NOT NULL,
+  code VARCHAR(6) NOT NULL,
+  purpose VARCHAR(20) NOT NULL DEFAULT 'register',
+  expires_at TIMESTAMPTZ NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  used BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_otps_email ON otps(email, purpose, used, created_at);

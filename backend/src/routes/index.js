@@ -9,6 +9,7 @@ const walletRoutes = require('./walletRoutes');
 const transactionRoutes = require('./transactionRoutes');
 const budgetRoutes = require('./budgetRoutes');
 const exportRoutes = require('./exportRoutes');
+const dashboardRoutes = require('./dashboardRoutes');
 
 const router = Router();
 
@@ -24,6 +25,7 @@ router.use('/wallets', walletRoutes);
 router.use('/transactions', transactionRoutes);
 router.use('/budgets', budgetRoutes);
 router.use('/export', exportRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 router.use((req, res) => {
   res.status(404);

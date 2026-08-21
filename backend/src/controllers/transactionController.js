@@ -3,9 +3,17 @@ const { ok, created } = require('../utils/response');
 
 async function index(req, res, next) {
   try {
-    const transactions = await transactionService.getAllTransactions(req.user);
-    const json = transactions.map((c) => c.toJSON());
-    ok(res, json, 'transactions retrieved successfully');
+    const { transactions, total, page, limit } =
+      await transactionService.getAllTransactions(req.user, req.query);
+    const totalPages = Math.ceil(total / limit);
+    ok(
+      res,
+      {
+        data: transactions.map((c) => c.toJSON()),
+        pagination: { page, limit, total, totalPages },
+      },
+      'transactions retrieved successfully',
+    );
   } catch (err) {
     next(err);
   }

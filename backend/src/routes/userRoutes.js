@@ -72,11 +72,14 @@ router.get('/:id', authorize(1), userController.show);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, whatsapp_number, password, role]
+ *             required: [name, email, whatsapp_number, password, role]
  *             properties:
  *               name:
  *                 type: string
  *                 example: Jane Doe
+ *               email :
+ *                 type: string
+ *                 example: user@gmail.com
  *               whatsapp_number:
  *                 type: string
  *                 example: 6289876543210

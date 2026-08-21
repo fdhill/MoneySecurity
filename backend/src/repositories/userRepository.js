@@ -19,10 +19,18 @@ async function findByWhatsappNumber(whatsappNumber) {
   return rows[0] ? new User(rows[0]) : null;
 }
 
-async function create({ name, whatsapp_number, password, role }) {
+async function findByEmail(email) {
   const { rows } = await pool.query(
-    'INSERT INTO users (name, whatsapp_number, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
-    [name, whatsapp_number, password, role],
+    'SELECT * FROM users WHERE email = $1',
+    [email],
+  );
+  return rows[0] ? new User(rows[0]) : null;
+}
+
+async function create({ name, email, whatsapp_number, password, role }) {
+  const { rows } = await pool.query(
+    'INSERT INTO users (name, email, whatsapp_number, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+    [name, email, whatsapp_number, password, role],
   );
   return new User(rows[0]);
 }
@@ -30,7 +38,7 @@ async function create({ name, whatsapp_number, password, role }) {
 async function update(id, { name, whatsapp_number }) {
   const { rows } = await pool.query(
     'UPDATE users SET name = $1, whatsapp_number = $2 WHERE id = $3 RETURNING *',
-    [name, whatsapp_number, id],
+    [name, whatsapp_number || null, id],
   );
   return rows[0] ? new User(rows[0]) : null;
 }
@@ -54,6 +62,7 @@ module.exports = {
   findAll,
   findById,
   findByWhatsappNumber,
+  findByEmail,
   create,
   update,
   remove,

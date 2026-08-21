@@ -41,11 +41,21 @@ async function reverseTransaction(old_transaction, new_transaction, newWallet) {
   return applyTransaction(newWallet, newAmt, new_transaction.type);
 }
 
-async function getAllTransactions(user) {
-  if (user.role == 1) {
-    return transactionRepository.findAll();
-  }
-  return transactionRepository.findByUserId(user.sub);
+async function getAllTransactions(user, { page, limit, category_id, wallet_id, type, q } = {}) {
+  const p = Math.max(1, parseInt(page, 10) || 1);
+  const l = Math.min(1000, Math.max(1, parseInt(limit, 10) || 20));
+  const filters = { page: p, limit: l };
+  if (category_id) filters.category_id = category_id;
+  if (wallet_id) filters.wallet_id = wallet_id;
+  if (type) filters.type = type;
+  if (q) filters.q = String(q).trim().slice(0, 100);
+
+  const result =
+    user.role == 1
+      ? await transactionRepository.findAll(filters)
+      : await transactionRepository.findByUserId(user.sub, filters);
+
+  return { transactions: result.rows, total: result.total, page: p, limit: l };
 }
 
 async function getTransactionById(id, user) {

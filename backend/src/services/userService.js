@@ -19,16 +19,25 @@ async function createUser(data, user) {
     data.role = 2;
   }
 
-  const existing = await userRepository.findByWhatsappNumber(
-    data.whatsapp_number,
+  if (data.whatsapp_number) {
+    const existing = await userRepository.findByWhatsappNumber(
+      data.whatsapp_number,
+    );
+    if (existing) {
+      throw httpError('whatsapp_number already used', 409);
+    }
+  }
+  const existing = await userRepository.findByEmail(
+    data.email,
   );
   if (existing) {
-    throw httpError('whatsapp_number already used', 409);
+    throw httpError('email already used', 409);
   }
 
   const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
   return userRepository.create({
     name: data.name,
+    email: data.email,
     whatsapp_number: data.whatsapp_number,
     password: hashedPassword,
     role: data.role,
@@ -36,9 +45,11 @@ async function createUser(data, user) {
 }
 
 async function updateUser(id, { name, whatsapp_number }) {
-  const existing = await userRepository.findByWhatsappNumber(whatsapp_number);
-  if (existing && existing.id !== id) {
-    throw httpError('whatsapp_number already used', 409);
+  if (whatsapp_number) {
+    const existing = await userRepository.findByWhatsappNumber(whatsapp_number);
+    if (existing && existing.id !== id) {
+      throw httpError('whatsapp_number already used', 409);
+    }
   }
 
   const user = await userRepository.update(id, { name, whatsapp_number });
@@ -47,9 +58,11 @@ async function updateUser(id, { name, whatsapp_number }) {
 }
 
 async function updateProfile(user, { name, whatsapp_number }) {
-  const existing = await userRepository.findByWhatsappNumber(whatsapp_number);
-  if (existing && existing.id !== user.sub) {
-    throw httpError('whatsapp_number already used', 409);
+  if (whatsapp_number) {
+    const existing = await userRepository.findByWhatsappNumber(whatsapp_number);
+    if (existing && existing.id !== user.sub) {
+      throw httpError('whatsapp_number already used', 409);
+    }
   }
 
   const updated = await userRepository.update(user.sub, {

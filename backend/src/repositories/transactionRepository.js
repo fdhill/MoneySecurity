@@ -1,33 +1,71 @@
 const pool = require('../config/db');
 const Transaction = require('../models/Transaction');
 
-const SELECT_WITH_NAMES = `
-  SELECT t.*, w.name AS wallet_name, c.name AS category_name
+const FROM_CLAUSE = `
   FROM transactions t
   JOIN wallets w ON t.wallet_id = w.id
   JOIN categories c ON t.category_id = c.id
 `;
 
-function withPeriodFilter(baseQuery, params, { start_date, end_date } = {}) {
+const SELECT_WITH_NAMES = `
+  SELECT t.*, w.name AS wallet_name, c.name AS category_name
+  ${FROM_CLAUSE}
+`;
+
+const SELECT_PAGED = `
+  SELECT t.*, w.name AS wallet_name, c.name AS category_name, COUNT(*) OVER() AS total
+  ${FROM_CLAUSE}
+`;
+
+async function findPage({ base, params, page, limit }) {
+  const offset = (page - 1) * limit;
+  params.push(limit, offset);
+  const sql = `${base} ORDER BY t.transaction_date DESC, t.id DESC LIMIT $${params.length - 1} OFFSET $${params.length}`;
+  const { rows } = await pool.query(sql, params);
+  let total = rows.length ? Number(rows[0].total) : 0;
+  if (!rows.length) {
+    const countSql = `SELECT COUNT(*) AS total ${FROM_CLAUSE}${base.replace(SELECT_PAGED, '')}`;
+    const { rows: countRows } = await pool.query(countSql, params.slice(0, -2));
+    total = Number(countRows[0].total);
+  }
+  return { rows: rows.map((row) => new Transaction(row)), total };
+}
+
+function withFilters(baseQuery, params, { start_date, end_date, category_id, wallet_id, type, q } = {}) {
   if (start_date && end_date) {
     params.push(start_date, end_date);
-    return `${baseQuery} AND t.transaction_date BETWEEN $${params.length - 1} AND $${params.length}`;
-  }
-  if (start_date) {
+    baseQuery += ` AND t.transaction_date BETWEEN $${params.length - 1} AND $${params.length}`;
+  } else if (start_date) {
     params.push(start_date);
-    return `${baseQuery} AND t.transaction_date >= $${params.length}`;
-  }
-  if (end_date) {
+    baseQuery += ` AND t.transaction_date >= $${params.length}`;
+  } else if (end_date) {
     params.push(end_date);
-    return `${baseQuery} AND t.transaction_date <= $${params.length}`;
+    baseQuery += ` AND t.transaction_date <= $${params.length}`;
+  }
+  if (category_id) {
+    params.push(category_id);
+    baseQuery += ` AND t.category_id = $${params.length}`;
+  }
+  if (wallet_id) {
+    params.push(wallet_id);
+    baseQuery += ` AND t.wallet_id = $${params.length}`;
+  }
+  if (type) {
+    params.push(type);
+    baseQuery += ` AND t.type = $${params.length}`;
+  }
+  if (q) {
+    params.push(`%${q}%`);
+    baseQuery += ` AND t.description ILIKE $${params.length}`;
   }
   return baseQuery;
 }
 
 async function findAll(filters = {}) {
+  const { page = 1, limit = 20 } = filters;
   const params = [];
-  const { rows } = await pool.query(withPeriodFilter(SELECT_WITH_NAMES, params, filters), params);
-  return rows.map((row) => new Transaction(row));
+  const base = withFilters(`${SELECT_PAGED} WHERE 1=1`, params, filters);
+  return findPage({ base, params, page, limit });
 }
 
 async function findById(id) {
@@ -38,12 +76,10 @@ async function findById(id) {
 }
 
 async function findByUserId(user_id, filters = {}) {
+  const { page = 1, limit = 20 } = filters;
   const params = [user_id];
-  const { rows } = await pool.query(
-    withPeriodFilter(`${SELECT_WITH_NAMES} WHERE t.user_id = $1`, params, filters),
-    params,
-  );
-  return rows.map((row) => new Transaction(row));
+  const base = withFilters(`${SELECT_PAGED} WHERE t.user_id = $1`, params, filters);
+  return findPage({ base, params, page, limit });
 }
 
 async function create({
@@ -70,7 +106,10 @@ async function create({
   return new Transaction(rows[0]);
 }
 
-async function update(id, { wallet_id, category_id, amount, type, description, transaction_date }) {
+async function update(
+  id,
+  { wallet_id, category_id, amount, type, description, transaction_date },
+) {
   const { rows } = await pool.query(
     'UPDATE transactions SET wallet_id = $1, category_id = $2, amount = $3, type = $4, description = $5, transaction_date = $6 WHERE id = $7 RETURNING *',
     [wallet_id, category_id, amount, type, description, transaction_date, id],
@@ -84,6 +123,47 @@ async function sumExpenseByCategoryAndPeriod(category_id, start, end) {
     [category_id, start, end],
   );
   return Number(rows[0].total);
+}
+
+async function sumIncomeExpenseByPeriod(user_id, start, end) {
+  const { rows } = await pool.query(
+    `SELECT
+       COALESCE(SUM(amount) FILTER (WHERE type = 'income'), 0)::numeric AS income,
+       COALESCE(SUM(amount) FILTER (WHERE type = 'expense'), 0)::numeric AS expense
+     FROM transactions
+     WHERE user_id = $1 AND transaction_date BETWEEN $2 AND $3`,
+    [user_id, start, end],
+  );
+  return rows[0];
+}
+
+async function sumByMonth(user_id, start, end) {
+  const { rows } = await pool.query(
+    `SELECT
+       to_char(transaction_date, 'YYYY-MM') AS month,
+       COALESCE(SUM(amount) FILTER (WHERE type = 'income'), 0)::numeric AS income,
+       COALESCE(SUM(amount) FILTER (WHERE type = 'expense'), 0)::numeric AS expense
+     FROM transactions
+     WHERE user_id = $1 AND transaction_date BETWEEN $2 AND $3
+     GROUP BY 1
+     ORDER BY 1`,
+    [user_id, start, end],
+  );
+  return rows;
+}
+
+async function sumExpenseByCategory(user_id, limit = 5) {
+  const { rows } = await pool.query(
+    `SELECT c.id AS category_id, c.name, COALESCE(SUM(t.amount), 0)::numeric AS total
+     FROM transactions t
+     JOIN categories c ON t.category_id = c.id
+     WHERE t.user_id = $1 AND t.type = 'expense'
+     GROUP BY c.id, c.name
+     ORDER BY total DESC
+     LIMIT $2`,
+    [user_id, limit],
+  );
+  return rows;
 }
 
 async function remove(id) {
@@ -101,5 +181,8 @@ module.exports = {
   create,
   update,
   sumExpenseByCategoryAndPeriod,
+  sumIncomeExpenseByPeriod,
+  sumByMonth,
+  sumExpenseByCategory,
   remove,
 };
