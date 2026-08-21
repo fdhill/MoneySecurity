@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { MessageCircle, Link, Copy, Check, RefreshCw, Clock, Send, Info } from '@lucide/vue'
+import { MessageCircle, Link, Copy, Check, RefreshCw, Clock, Send, Info, Phone } from '@lucide/vue'
 import { telegramService } from '@/services/telegramService'
 import { useToast } from '@/composables/useToast'
+import { useAuth } from '@/composables/useAuth'
 
 const { showToast } = useToast()
+const { user } = useAuth()
 
 const botUsername = (import.meta.env.VITE_TELEGRAM_BOT_USERNAME || '').trim().replace(/^@/, '')
 const botLink = botUsername ? `https://t.me/${botUsername}` : ''
@@ -104,7 +106,30 @@ onUnmounted(stopTimers)
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto space-y-6 pb-12">
+  <!-- No phone number warning -->
+  <div v-if="!user?.whatsapp_number" class="max-w-2xl mx-auto space-y-6 pb-12">
+    <div>
+      <h1 class="text-2xl font-bold text-foreground">Bot Telegram</h1>
+      <p class="text-sm text-muted-foreground mt-1">Catat transaksi langsung dari Telegram</p>
+    </div>
+
+    <div class="bg-card rounded-2xl p-8 border border-border text-center">
+      <div class="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-4">
+        <Phone class="text-amber-600 dark:text-amber-400" :size="24" />
+      </div>
+      <h2 class="font-semibold text-foreground mb-2">Nomor HP Diperlukan</h2>
+      <p class="text-sm text-muted-foreground mb-5 max-w-sm mx-auto">
+        Anda perlu menambahkan nomor WhatsApp terlebih dahulu sebelum menggunakan bot Telegram.
+      </p>
+      <router-link to="/profile"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+        Tambahkan Nomor HP
+      </router-link>
+    </div>
+  </div>
+
+  <!-- Telegram bot content -->
+  <div v-else class="max-w-2xl mx-auto space-y-6 pb-12">
     <!-- Header -->
     <div>
       <h1 class="text-2xl font-bold text-foreground">Bot Telegram</h1>

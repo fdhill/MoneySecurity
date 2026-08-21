@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 
 import LoginView from '@/views/LoginView.vue';
+import RegisterView from '@/views/RegisterView.vue';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import DashboardView from '@/views/DashboardView.vue';
 import TransactionsView from '@/views/TransactionsView.vue';
@@ -10,12 +11,19 @@ import CategoriesView from '@/views/CategoriesView.vue';
 import BudgetView from '@/views/BudgetView.vue';
 import WaBotView from '@/views/WaBotView.vue';
 import TelegramBotView from '@/views/TelegramBotView.vue';
+import ProfileView from '@/views/ProfileView.vue';
 
 const routes = [
   {
     path: '/login',
     name: 'login',
     component: LoginView,
+    meta: { guest: true },
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: RegisterView,
     meta: { guest: true },
   },
   {
@@ -30,6 +38,7 @@ const routes = [
       { path: 'budget', name: 'budget', component: BudgetView },
       { path: 'wa-bot', name: 'wa-bot', component: WaBotView },
       { path: 'telegram-bot', name: 'telegram-bot', component: TelegramBotView },
+      { path: 'profile', name: 'profile', component: ProfileView },
     ],
   },
 ];

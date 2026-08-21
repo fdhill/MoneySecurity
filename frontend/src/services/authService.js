@@ -4,8 +4,11 @@ export const authService = {
   login(email, password) {
     return api.post('/auth/login', { email, password });
   },
-  register(data) {
-    return api.post('/auth/register', data);
+  requestOtp(email) {
+    return api.post('/auth/request-otp', { email });
+  },
+  verifyOtp(data) {
+    return api.post('/auth/verify-otp', data);
   },
   me() {
     return api.get('/auth/me');
