@@ -33,6 +33,7 @@ const MESSAGE_MAP = {
   'Too many OTP requests': 'Terlalu banyak request OTP, coba lagi dalam 1 menit',
   'Too many OTP attempts': 'Terlalu banyak percobaan, kode OTP kadaluarsa',
   'Registration successful': 'Registrasi berhasil',
+  'phone number required for telegram bot': 'Nomor HP wajib diisi untuk menggunakan bot Telegram',
   'Route not found': 'Halaman tidak ditemukan',
 };
 
