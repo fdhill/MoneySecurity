@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 
 import LoginView from '@/views/LoginView.vue';
+import RegisterView from '@/views/RegisterView.vue';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import DashboardView from '@/views/DashboardView.vue';
 import TransactionsView from '@/views/TransactionsView.vue';
@@ -16,6 +17,12 @@ const routes = [
     path: '/login',
     name: 'login',
     component: LoginView,
+    meta: { guest: true },
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: RegisterView,
     meta: { guest: true },
   },
   {
