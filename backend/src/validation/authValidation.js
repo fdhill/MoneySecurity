@@ -23,8 +23,8 @@ const emailRules = [
     .normalizeEmail(),
 ];
 
-const optionalWhatsappRules = [
-  body('whatsapp_number')
+const optionalPhoneRules = [
+  body('phone_number')
     .optional({ values: 'falsy' })
     .trim()
     .isMobilePhone('id-ID')
@@ -82,14 +82,14 @@ const verifyOtpRules = [
     .withMessage('invalid otp'),
   ...nameRules,
   ...passwordRules,
-  ...optionalWhatsappRules,
+  ...optionalPhoneRules,
 ];
 
 const loginRules = [...emailRules, ...loginPasswordRules];
 
-const registerRules = [...nameRules, ...emailRules, ...passwordRules, ...optionalWhatsappRules];
+const registerRules = [...nameRules, ...emailRules, ...passwordRules, ...optionalPhoneRules];
 
-const updateProfileRules = [...nameRules, ...optionalWhatsappRules];
+const updateProfileRules = [...nameRules, ...optionalPhoneRules];
 
 const changePasswordRules = [...oldPasswordRules, ...newPasswordRules];
 

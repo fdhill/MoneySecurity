@@ -28,7 +28,7 @@ const options = {
           properties: {
             id: { type: 'integer', example: 1 },
             name: { type: 'string', example: 'John Doe' },
-            whatsapp_number: { type: 'string', example: '6281234567890' },
+            phone_number: { type: 'string', example: '6281234567890' },
             role: { type: 'integer', example: 2, description: '1 = admin, 2 = user' },
           },
         },

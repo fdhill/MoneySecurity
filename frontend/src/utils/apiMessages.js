@@ -25,7 +25,7 @@ const MESSAGE_MAP = {
   'Invalid email or password': 'Email atau password salah',
   'Invalid password': 'Password salah',
   'Access token is missing': 'Token akses tidak ditemukan',
-  'whatsapp_number already used': 'Nomor whatsapp sudah digunakan',
+  'phone number already used': 'Nomor telepon sudah digunakan',
   'email already used': 'Email sudah digunakan',
   'OTP sent to email': 'Kode OTP sudah dikirim ke email',
   'OTP expired': 'Kode OTP sudah kadaluarsa',

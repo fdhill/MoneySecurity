@@ -67,7 +67,7 @@ router.post('/request-otp', authRequestOtp, otpController.requestOtp);
  *               password:
  *                 type: string
  *                 example: secret123
- *               whatsapp_number:
+ *               phone_number:
  *                 type: string
  *                 example: 6281234567890
  *     responses:
@@ -83,18 +83,18 @@ router.post('/verify-otp', authVerifyOtp, otpController.verifyOtp);
  * /auth/login:
  *   post:
  *     tags: [Auth]
- *     summary: Login with WhatsApp number and password
+ *     summary: Login with email and password
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required: [whatsapp_number, password]
+ *             required: [email, password]
  *             properties:
- *               whatsapp_number:
+ *               email:
  *                 type: string
- *                 example: 6281234567890
+ *                 example: user@gmail.com
  *               password:
  *                 type: string
  *                 example: secret123
@@ -144,12 +144,12 @@ router.get('/me', authenticate, authController.me);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, whatsapp_number]
+ *             required: [name, phone_number]
  *             properties:
  *               name:
  *                 type: string
  *                 example: John Doe Updated
- *               whatsapp_number:
+ *               phone_number:
  *                 type: string
  *                 example: 6281234567891
  *     responses:

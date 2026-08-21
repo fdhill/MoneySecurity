@@ -19,12 +19,12 @@ async function createUser(data, user) {
     data.role = 2;
   }
 
-  if (data.whatsapp_number) {
-    const existing = await userRepository.findByWhatsappNumber(
-      data.whatsapp_number,
+  if (data.phone_number) {
+    const existing = await userRepository.findByPhoneNumber(
+      data.phone_number,
     );
     if (existing) {
-      throw httpError('whatsapp_number already used', 409);
+      throw httpError('phone number already used', 409);
     }
   }
   const existing = await userRepository.findByEmail(
@@ -38,36 +38,36 @@ async function createUser(data, user) {
   return userRepository.create({
     name: data.name,
     email: data.email,
-    whatsapp_number: data.whatsapp_number,
+    phone_number: data.phone_number,
     password: hashedPassword,
     role: data.role,
   });
 }
 
-async function updateUser(id, { name, whatsapp_number }) {
-  if (whatsapp_number) {
-    const existing = await userRepository.findByWhatsappNumber(whatsapp_number);
+async function updateUser(id, { name, phone_number }) {
+  if (phone_number) {
+    const existing = await userRepository.findByPhoneNumber(phone_number);
     if (existing && existing.id !== id) {
-      throw httpError('whatsapp_number already used', 409);
+      throw httpError('phone number already used', 409);
     }
   }
 
-  const user = await userRepository.update(id, { name, whatsapp_number });
+  const user = await userRepository.update(id, { name, phone_number });
   assertFound(user, id, 'user');
   return user;
 }
 
-async function updateProfile(user, { name, whatsapp_number }) {
-  if (whatsapp_number) {
-    const existing = await userRepository.findByWhatsappNumber(whatsapp_number);
+async function updateProfile(user, { name, phone_number }) {
+  if (phone_number) {
+    const existing = await userRepository.findByPhoneNumber(phone_number);
     if (existing && existing.id !== user.sub) {
-      throw httpError('whatsapp_number already used', 409);
+      throw httpError('phone number already used', 409);
     }
   }
 
   const updated = await userRepository.update(user.sub, {
     name,
-    whatsapp_number,
+    phone_number,
   });
   assertFound(updated, user.sub);
   return updated;

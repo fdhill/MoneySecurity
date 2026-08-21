@@ -23,8 +23,8 @@ const emailRules = [
     .normalizeEmail(),
 ];
 
-const optionalWhatsappRules = [
-  body('whatsapp_number')
+const optionalPhoneRules = [
+  body('phone_number')
     .optional({ values: 'falsy' })
     .trim()
     .isMobilePhone('id-ID')
@@ -36,7 +36,7 @@ const optionalWhatsappRules = [
 const createUserRules = [
   ...nameRules,
   ...emailRules,
-  ...optionalWhatsappRules,
+  ...optionalPhoneRules,
   body('password')
     .notEmpty()
     .withMessage('password is required')
@@ -53,7 +53,7 @@ const createUserRules = [
     .withMessage('invalid role, can only be 1 or 2'),
 ];
 
-const updateUserRules = [...nameRules, ...optionalWhatsappRules];
+const updateUserRules = [...nameRules, ...optionalPhoneRules];
 
 const userCreate = [...createUserRules, validate];
 const userUpdate = [...updateUserRules, validate];

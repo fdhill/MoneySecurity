@@ -72,7 +72,7 @@ router.get('/:id', authorize(1), userController.show);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, email, whatsapp_number, password, role]
+ *             required: [name, email, phone_number, password, role]
  *             properties:
  *               name:
  *                 type: string
@@ -80,7 +80,7 @@ router.get('/:id', authorize(1), userController.show);
  *               email :
  *                 type: string
  *                 example: user@gmail.com
- *               whatsapp_number:
+ *               phone_number:
  *                 type: string
  *                 example: 6289876543210
  *               password:
@@ -100,7 +100,7 @@ router.get('/:id', authorize(1), userController.show);
  *       403:
  *         description: Forbidden - Admin only
  *       409:
- *         description: WhatsApp number already used
+ *         description: Phone number already used
  */
 router.post('/', authorize(1), userCreate, userController.store);
 
@@ -125,12 +125,12 @@ router.post('/', authorize(1), userCreate, userController.store);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, whatsapp_number]
+ *             required: [name, phone_number]
  *             properties:
  *               name:
  *                 type: string
  *                 example: Jane Doe Updated
- *               whatsapp_number:
+ *               phone_number:
  *                 type: string
  *                 example: 6289876543211
  *     responses:

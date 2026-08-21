@@ -15,12 +15,12 @@ async function requestOtp(req, res, next) {
 
 async function verifyOtp(req, res, next) {
   try {
-    const { email, code, name, password, whatsapp_number } = req.body;
+    const { email, code, name, password, phone_number } = req.body;
 
     await otpService.verifyOtp(email, code, 'register');
 
     const user = await userService.createUser(
-      { email, name, password, whatsapp_number },
+      { email, name, password, phone_number },
       null,
     );
 

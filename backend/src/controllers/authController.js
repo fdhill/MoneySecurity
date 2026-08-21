@@ -44,7 +44,7 @@ async function changePassword(req, res, next) {
 async function telegramLinkToken(req, res, next) {
   try {
     const user = await userService.getUserById(req.user.sub);
-    if (!user.whatsapp_number) {
+    if (!user.phone_number) {
       throw httpError('phone number required for telegram bot', 400);
     }
     const result = await telegramService.generateLinkToken(req.user.sub);
@@ -57,7 +57,7 @@ async function telegramLinkToken(req, res, next) {
 async function telegramStatus(req, res, next) {
   try {
     const user = await userService.getUserById(req.user.sub);
-    if (!user.whatsapp_number) {
+    if (!user.phone_number) {
       throw httpError('phone number required for telegram bot', 400);
     }
     const status = await telegramService.getStatus(req.user.sub);

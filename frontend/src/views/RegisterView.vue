@@ -13,7 +13,7 @@ const step = ref(1);
 const name = ref('');
 const email = ref('');
 const password = ref('');
-const whatsappNumber = ref('');
+const phoneNumber = ref('');
 const showPassword = ref(false);
 const loading = ref(false);
 const error = ref('');
@@ -97,7 +97,7 @@ async function handleVerifyOtp() {
       code,
       name: name.value,
       password: password.value,
-      whatsapp_number: whatsappNumber.value || undefined,
+      phone_number: phoneNumber.value || undefined,
     });
     const { token, user } = res.data.data;
     localStorage.setItem('token', token);
@@ -178,8 +178,8 @@ function goBack() {
           </div>
 
           <div>
-            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Nomor WhatsApp <span class="text-muted-foreground/50">(opsional)</span></label>
-            <input v-model="whatsappNumber" type="text" placeholder="08xxxxxxxxxx"
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Nomor Telepon <span class="text-muted-foreground/50">(opsional)</span></label>
+            <input v-model="phoneNumber" type="text" placeholder="08xxxxxxxxxx"
               class="w-full px-3.5 py-2.5 rounded-xl border border-border bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
 

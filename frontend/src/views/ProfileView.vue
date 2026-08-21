@@ -24,7 +24,7 @@ const passwordError = ref('');
 watch(user, (u) => {
   if (u) {
     editName.value = u.name || '';
-    editPhone.value = u.whatsapp_number || '';
+    editPhone.value = u.phone_number || '';
   }
 }, { immediate: true });
 
@@ -43,7 +43,7 @@ async function handleUpdateProfile() {
   try {
     await authService.updateProfile({
       name: editName.value,
-      whatsapp_number: editPhone.value || undefined,
+      phone_number: editPhone.value || undefined,
     });
     await fetchProfile();
     showToast('Profil berhasil diperbarui');
@@ -118,8 +118,8 @@ async function handleChangePassword() {
         <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/40">
           <Phone :size="16" class="text-muted-foreground" />
           <div>
-            <p class="text-xs text-muted-foreground">Nomor WhatsApp</p>
-            <p class="text-sm font-medium text-foreground">{{ user.whatsapp_number || 'Belum diisi' }}</p>
+            <p class="text-xs text-muted-foreground">Nomor Telepon</p>
+            <p class="text-sm font-medium text-foreground">{{ user.phone_number || 'Belum diisi' }}</p>
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@ async function handleChangePassword() {
             class="w-full px-3.5 py-2.5 rounded-xl border border-border bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
         </div>
         <div>
-          <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Nomor WhatsApp <span class="text-muted-foreground/50">(opsional)</span></label>
+          <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Nomor Telepon <span class="text-muted-foreground/50">(opsional)</span></label>
           <input v-model="editPhone" type="text" placeholder="08xxxxxxxxxx"
             class="w-full px-3.5 py-2.5 rounded-xl border border-border bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
         </div>

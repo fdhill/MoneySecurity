@@ -107,7 +107,7 @@ onUnmounted(stopTimers)
 
 <template>
   <!-- No phone number warning -->
-  <div v-if="!user?.whatsapp_number" class="max-w-2xl mx-auto space-y-6 pb-12">
+  <div v-if="!user?.phone_number" class="max-w-2xl mx-auto space-y-6 pb-12">
     <div>
       <h1 class="text-2xl font-bold text-foreground">Bot Telegram</h1>
       <p class="text-sm text-muted-foreground mt-1">Catat transaksi langsung dari Telegram</p>
@@ -119,7 +119,7 @@ onUnmounted(stopTimers)
       </div>
       <h2 class="font-semibold text-foreground mb-2">Nomor HP Diperlukan</h2>
       <p class="text-sm text-muted-foreground mb-5 max-w-sm mx-auto">
-        Anda perlu menambahkan nomor WhatsApp terlebih dahulu sebelum menggunakan bot Telegram.
+        Anda perlu menambahkan nomor telepon terlebih dahulu sebelum menggunakan bot Telegram.
       </p>
       <router-link to="/profile"
         class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">

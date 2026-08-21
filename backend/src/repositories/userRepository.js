@@ -11,10 +11,10 @@ async function findById(id) {
   return rows[0] ? new User(rows[0]) : null;
 }
 
-async function findByWhatsappNumber(whatsappNumber) {
+async function findByPhoneNumber(phoneNumber) {
   const { rows } = await pool.query(
-    'SELECT * FROM users WHERE whatsapp_number = $1',
-    [whatsappNumber],
+    'SELECT * FROM users WHERE phone_number = $1',
+    [phoneNumber],
   );
   return rows[0] ? new User(rows[0]) : null;
 }
@@ -27,18 +27,18 @@ async function findByEmail(email) {
   return rows[0] ? new User(rows[0]) : null;
 }
 
-async function create({ name, email, whatsapp_number, password, role }) {
+async function create({ name, email, phone_number, password, role }) {
   const { rows } = await pool.query(
-    'INSERT INTO users (name, email, whatsapp_number, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-    [name, email, whatsapp_number, password, role],
+    'INSERT INTO users (name, email, phone_number, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+    [name, email, phone_number, password, role],
   );
   return new User(rows[0]);
 }
 
-async function update(id, { name, whatsapp_number }) {
+async function update(id, { name, phone_number }) {
   const { rows } = await pool.query(
-    'UPDATE users SET name = $1, whatsapp_number = $2 WHERE id = $3 RETURNING *',
-    [name, whatsapp_number || null, id],
+    'UPDATE users SET name = $1, phone_number = $2 WHERE id = $3 RETURNING *',
+    [name, phone_number || null, id],
   );
   return rows[0] ? new User(rows[0]) : null;
 }
@@ -61,7 +61,7 @@ async function changePassword(id, password) {
 module.exports = {
   findAll,
   findById,
-  findByWhatsappNumber,
+  findByPhoneNumber,
   findByEmail,
   create,
   update,
