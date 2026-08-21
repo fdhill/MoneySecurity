@@ -10,6 +10,7 @@ const pool = new Pool({
 });
 
 const WHATSAPP = '081100000001';
+const EMAIL = 'perftest@moneysecurity.test';
 const PASSWORD = 'perftest123';
 const NAME = 'Perf Tester';
 const TRANSACTION_COUNT = 10000;
@@ -44,14 +45,14 @@ async function main() {
     await client.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
 
     await client.query(
-      `INSERT INTO users (name, whatsapp_number, password, role)
-       VALUES ($1, $2, crypt($3, gen_salt('bf')), 0)
-       ON CONFLICT (whatsapp_number) DO UPDATE SET role = 0`,
-      [NAME, WHATSAPP, PASSWORD],
+      `INSERT INTO users (name, whatsapp_number, email, password, role)
+       VALUES ($1, $2, $3, crypt($4, gen_salt('bf')), 0)
+       ON CONFLICT (email) DO UPDATE SET role = 0`,
+      [NAME, WHATSAPP, EMAIL, PASSWORD],
     );
     const { rows: [user] } = await client.query(
-      'SELECT * FROM users WHERE whatsapp_number = $1',
-      [WHATSAPP],
+      'SELECT * FROM users WHERE email = $1',
+      [EMAIL],
     );
 
     await client.query('DELETE FROM transactions WHERE user_id = $1', [user.id]);
@@ -120,7 +121,7 @@ async function main() {
     );
 
     console.log('=== SEED SELESAI ===');
-    console.log(`User    : ${NAME} (${WHATSAPP}) / password: ${PASSWORD}`);
+    console.log(`User    : ${NAME} (${EMAIL}) / password: ${PASSWORD}`);
     console.log(`Wallets : ${WALLETS.join(', ')}`);
     console.log(`Category: ${EXPENSE_CATEGORIES.join(', ')} (expense), ${INCOME_CATEGORIES.join(', ')} (income)`);
     console.log(`Transaksi: ${count.n}`);

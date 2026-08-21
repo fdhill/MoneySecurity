@@ -1,7 +1,8 @@
 class User {
-  constructor({ id, name, whatsapp_number, password, role, created_at } = {}) {
+  constructor({ id, name, email, whatsapp_number, password, role, created_at } = {}) {
     this.id = id ?? null;
     this.name = name ?? null;
+    this.email = email ?? null;
     this.whatsapp_number = whatsapp_number ?? null;
     this.password = password ?? null;
     this.role = role ?? null;
@@ -12,6 +13,7 @@ class User {
     return {
       id: this.id,
       name: this.name,
+      email: this.email,
       whatsapp_number: this.whatsapp_number,
       role: this.role,
     };

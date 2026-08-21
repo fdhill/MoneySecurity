@@ -65,7 +65,7 @@ async function main() {
   await run('POST /auth/login', {
     path: '/auth/login',
     method: 'POST',
-    body: { whatsapp_number: '081100000001', password: 'perftest123' },
+    body: { email: 'perftest@moneysecurity.test', password: 'perftest123' },
   });
   await run('GET /auth/me', { path: '/auth/me' });
   await run('GET /wallets', { path: '/wallets' });
