@@ -65,15 +65,6 @@ CREATE TABLE budget_instances (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_wallets_user_id ON wallets(user_id);
-CREATE INDEX idx_categories_user_id ON categories(user_id);
-CREATE INDEX idx_transactions_user_id ON transactions(user_id);
-CREATE INDEX idx_transactions_wallet_id ON transactions(wallet_id);
-CREATE INDEX idx_transactions_category_id ON transactions(category_id);
-CREATE INDEX idx_budget_templates_user_id ON budget_templates(user_id);
-CREATE INDEX idx_budget_instances_template_id ON budget_instances(template_id);
-CREATE INDEX idx_budget_instances_period ON budget_instances(period_start, period_end);
-
 CREATE TABLE otps (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) NOT NULL,
@@ -85,4 +76,12 @@ CREATE TABLE otps (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE INDEX idx_wallets_user_id ON wallets(user_id);
+CREATE INDEX idx_categories_user_id ON categories(user_id);
+CREATE INDEX idx_transactions_user_id ON transactions(user_id);
+CREATE INDEX idx_transactions_wallet_id ON transactions(wallet_id);
+CREATE INDEX idx_transactions_category_id ON transactions(category_id);
+CREATE INDEX idx_budget_templates_user_id ON budget_templates(user_id);
+CREATE INDEX idx_budget_instances_template_id ON budget_instances(template_id);
+CREATE INDEX idx_budget_instances_period ON budget_instances(period_start, period_end);
 CREATE INDEX idx_otps_email ON otps(email, purpose, used, created_at);

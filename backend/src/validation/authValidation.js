@@ -71,6 +71,20 @@ const newPasswordRules = [
     .withMessage('new_password must be different from old_password'),
 ];
 
+const requestOtpRules = [...emailRules];
+
+const verifyOtpRules = [
+  ...emailRules,
+  body('code')
+    .isLength({ min: 6, max: 6 })
+    .withMessage('invalid otp')
+    .isNumeric()
+    .withMessage('invalid otp'),
+  ...nameRules,
+  ...passwordRules,
+  ...optionalWhatsappRules,
+];
+
 const loginRules = [...emailRules, ...loginPasswordRules];
 
 const registerRules = [...nameRules, ...emailRules, ...passwordRules, ...optionalWhatsappRules];
@@ -83,10 +97,14 @@ const authLogin = [...loginRules, validate];
 const authRegister = [...registerRules, validate];
 const authUpdateProfile = [...updateProfileRules, validate];
 const authChangePassword = [...changePasswordRules, validate];
+const authRequestOtp = [...requestOtpRules, validate];
+const authVerifyOtp = [...verifyOtpRules, validate];
 
 module.exports = {
   authLogin,
   authRegister,
   authUpdateProfile,
   authChangePassword,
+  authRequestOtp,
+  authVerifyOtp,
 };

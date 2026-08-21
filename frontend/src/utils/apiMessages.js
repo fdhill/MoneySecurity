@@ -27,6 +27,13 @@ const MESSAGE_MAP = {
   'Access token is missing': 'Token akses tidak ditemukan',
   'whatsapp_number already used': 'Nomor whatsapp sudah digunakan',
   'email already used': 'Email sudah digunakan',
+  'OTP sent to email': 'Kode OTP sudah dikirim ke email',
+  'OTP expired': 'Kode OTP sudah kadaluarsa',
+  'OTP invalid': 'Kode OTP salah',
+  'Too many OTP requests': 'Terlalu banyak request OTP, coba lagi dalam 1 menit',
+  'Too many OTP attempts': 'Terlalu banyak percobaan, kode OTP kadaluarsa',
+  'Registration successful': 'Registrasi berhasil',
+  'phone number required for telegram bot': 'Nomor HP wajib diisi untuk menggunakan bot Telegram',
   'Route not found': 'Halaman tidak ditemukan',
 };
 

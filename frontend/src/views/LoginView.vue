@@ -72,6 +72,11 @@ async function handleLogin() {
             {{ loading ? 'Masuk...' : 'Masuk' }}
           </button>
         </form>
+
+        <p class="text-sm text-center mt-4">
+          Belum punya akun?
+          <router-link to="/register" class="font-semibold text-foreground hover:opacity-80 transition-opacity">Daftar</router-link>
+        </p>
       </div>
     </div>
   </div>
