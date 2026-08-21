@@ -9,7 +9,7 @@ const pool = new Pool({
   database: process.env.DB_NAME || 'moneysecurity',
 });
 
-const WHATSAPP = '081100000001';
+const PHONE_NUMBER = '081100000001';
 const EMAIL = 'perftest@moneysecurity.test';
 const PASSWORD = 'perftest123';
 const NAME = 'Perf Tester';
@@ -45,10 +45,10 @@ async function main() {
     await client.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
 
     await client.query(
-      `INSERT INTO users (name, whatsapp_number, email, password, role)
+      `INSERT INTO users (name, phone_number, email, password, role)
        VALUES ($1, $2, $3, crypt($4, gen_salt('bf')), 0)
        ON CONFLICT (email) DO UPDATE SET role = 0`,
-      [NAME, WHATSAPP, EMAIL, PASSWORD],
+      [NAME, PHONE_NUMBER, EMAIL, PASSWORD],
     );
     const { rows: [user] } = await client.query(
       'SELECT * FROM users WHERE email = $1',
