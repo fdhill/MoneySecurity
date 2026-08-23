@@ -76,6 +76,14 @@ CREATE TABLE otps (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE activity_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  description TEXT NOT NULL,
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE INDEX idx_wallets_user_id ON wallets(user_id);
 CREATE INDEX idx_categories_user_id ON categories(user_id);
 CREATE INDEX idx_transactions_user_id ON transactions(user_id);
@@ -85,3 +93,5 @@ CREATE INDEX idx_budget_templates_user_id ON budget_templates(user_id);
 CREATE INDEX idx_budget_instances_template_id ON budget_instances(template_id);
 CREATE INDEX idx_budget_instances_period ON budget_instances(period_start, period_end);
 CREATE INDEX idx_otps_email ON otps(email, purpose, used, created_at);
+CREATE INDEX idx_activity_logs_user_id ON activity_logs(user_id);
+CREATE INDEX idx_activity_logs_unread ON activity_logs(user_id, created_at DESC) WHERE read_at IS NULL;
