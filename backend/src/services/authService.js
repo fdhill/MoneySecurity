@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const userRepository = require('../repositories/userRepository');
+const activityService = require('./activityService');
 const { sign } = require('../config/jwt');
 const {httpError} = require('../utils/helpers');
 
@@ -18,6 +19,8 @@ async function login({ email, password }) {
   };
 
   const token = sign(payload);
+
+  activityService.log(user.id, 'Login ke aplikasi');
 
   return { token, user: user.toJSON() };
 }

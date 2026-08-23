@@ -10,6 +10,7 @@ const transactionRoutes = require('./transactionRoutes');
 const budgetRoutes = require('./budgetRoutes');
 const exportRoutes = require('./exportRoutes');
 const dashboardRoutes = require('./dashboardRoutes');
+const activityRoutes = require('./activityRoutes');
 
 const router = Router();
 
@@ -26,6 +27,7 @@ router.use('/transactions', transactionRoutes);
 router.use('/budgets', budgetRoutes);
 router.use('/export', exportRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/activities', activityRoutes);
 
 router.use((req, res) => {
   res.status(404);

@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const userRepository = require('../repositories/userRepository');
+const activityService = require('./activityService');
 const { assertFound, httpError } = require('../utils/helpers');
 
 const SALT_ROUNDS = 10;
@@ -70,6 +71,9 @@ async function updateProfile(user, { name, phone_number }) {
     phone_number,
   });
   assertFound(updated, user.sub);
+
+  activityService.log(user.sub, 'Memperbarui profil');
+
   return updated;
 }
 
@@ -88,7 +92,11 @@ async function changePassword(id, old_password, new_password) {
   }
 
   const hashedPassword = await bcrypt.hash(new_password, SALT_ROUNDS);
-  return userRepository.changePassword(id, hashedPassword);
+  const result = await userRepository.changePassword(id, hashedPassword);
+
+  activityService.log(id, 'Mengganti password');
+
+  return result;
 }
 
 module.exports = {

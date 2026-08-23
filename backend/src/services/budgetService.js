@@ -2,6 +2,7 @@ const budgetTemplateRepository = require('../repositories/budgetTemplateReposito
 const budgetInstanceRepository = require('../repositories/budgetInstanceRepository');
 const transactionRepository = require('../repositories/transactionRepository');
 const categoryRepository = require('../repositories/categoryRepository');
+const activityService = require('./activityService');
 const { assertFound, assertOwnership, httpError } = require('../utils/helpers');
 
 function calculatePeriod(frequency) {
@@ -50,13 +51,20 @@ async function createTemplate(data, user) {
     throw httpError('The type must be expense', 400);
   }
 
-  return budgetTemplateRepository.create({
+  const template = await budgetTemplateRepository.create({
     user_id: user.sub,
     category_id: data.category_id,
     amount: data.amount,
     frequency: data.frequency,
     is_recurring: data.is_recurring !== undefined ? data.is_recurring : true,
   });
+
+  activityService.log(
+    user.sub,
+    `Menambahkan template budget ${category.name} Rp${Number(data.amount).toLocaleString('id-ID')}`,
+  );
+
+  return template;
 }
 
 async function updateTemplate(id, data, user) {
@@ -73,6 +81,9 @@ async function updateTemplate(id, data, user) {
         : template.is_recurring,
   });
   assertFound(updated, id, 'budget template');
+
+  activityService.log(user.sub, 'Mengubah template budget');
+
   return updated;
 }
 
@@ -83,6 +94,8 @@ async function deleteTemplate(id, user) {
 
   const deleted = await budgetTemplateRepository.remove(id);
   assertFound(deleted, id, 'budget template');
+
+  activityService.log(user.sub, 'Menghapus template budget');
 }
 
 async function getActiveInstance(template_id, user) {

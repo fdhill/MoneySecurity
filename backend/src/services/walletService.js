@@ -1,4 +1,5 @@
 const walletRepository = require('../repositories/walletRepository');
+const activityService = require('./activityService');
 const { assertFound, assertOwnership } = require('../utils/helpers');
 
 async function getAllWallets(user) {
@@ -16,11 +17,15 @@ async function getWalletById(id, user) {
 }
 
 async function createWallet(data, user) {
-  return walletRepository.create({
+  const wallet = await walletRepository.create({
     user_id: user.sub,
     name: data.name,
     balance: data.balance || 0,
   });
+
+  activityService.log(user.sub, `Menambahkan dompet ${wallet.name}`);
+
+  return wallet;
 }
 
 async function updateWallet(id, data, user) {
@@ -32,6 +37,9 @@ async function updateWallet(id, data, user) {
     name: data.name,
     balance: data.balance,
   });
+
+  activityService.log(user.sub, `Mengubah dompet ${updated.name}`);
+
   return updated;
 }
 
@@ -42,6 +50,8 @@ async function deleteWallet(id, user) {
 
   const deleted = await walletRepository.remove(id);
   assertFound(deleted, id, 'wallet');
+
+  activityService.log(user.sub, `Menghapus dompet ${wallet.name}`);
 }
 
 module.exports = {

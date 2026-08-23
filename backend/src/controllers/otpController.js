@@ -1,6 +1,7 @@
 const otpService = require('../services/otpService');
 const userService = require('../services/userService');
 const authService = require('../services/authService');
+const activityService = require('../services/activityService');
 const { ok } = require('../utils/response');
 
 async function requestOtp(req, res, next) {
@@ -25,6 +26,8 @@ async function verifyOtp(req, res, next) {
     );
 
     const { token } = await authService.login({ email, password });
+
+    activityService.log(user.id, 'Registrasi akun baru');
 
     ok(res, { token, user: user.toJSON() }, 'Registration successful', 201);
   } catch (err) {

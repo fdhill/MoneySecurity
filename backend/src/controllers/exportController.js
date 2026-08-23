@@ -1,4 +1,5 @@
 const exportService = require('../services/exportService');
+const activityService = require('../services/activityService');
 
 async function exportTransactions(req, res, next) {
   try {
@@ -13,6 +14,8 @@ async function exportTransactions(req, res, next) {
     );
     await workbook.xlsx.write(res);
     res.end();
+
+    activityService.log(req.user.sub, 'Export transaksi ke Excel');
   } catch (err) {
     next(err);
   }
