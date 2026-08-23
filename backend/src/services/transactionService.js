@@ -1,6 +1,7 @@
 const transactionRepository = require('../repositories/transactionRepository');
 const walletRepository = require('../repositories/walletRepository');
 const categoryRepository = require('../repositories/categoryRepository');
+const activityService = require('./activityService');
 const { assertFound, assertOwnership, httpError } = require('../utils/helpers');
 
 async function applyTransaction(wallet, amount, type) {
@@ -84,7 +85,7 @@ async function createTransaction(data, user) {
 
   await applyTransaction(wallet, data.amount, data.type);
 
-  return transactionRepository.create({
+  const transaction = await transactionRepository.create({
     user_id: user.sub,
     wallet_id: data.wallet_id,
     category_id: data.category_id,
@@ -94,6 +95,13 @@ async function createTransaction(data, user) {
     transaction_date:
       data.transaction_date || new Date().toISOString().split('T')[0],
   });
+
+  activityService.log(
+    user.sub,
+    `Menambahkan transaksi Rp${Number(data.amount).toLocaleString('id-ID')} (${category.name})`,
+  );
+
+  return transaction;
 }
 
 async function updateTransaction(id, data, user) {
@@ -129,6 +137,12 @@ async function updateTransaction(id, data, user) {
       data.transaction_date || transaction.transaction_date,
   });
   assertFound(updated, id, 'transaction');
+
+  activityService.log(
+    user.sub,
+    `Mengubah transaksi Rp${Number(updated.amount).toLocaleString('id-ID')} (${category.name})`,
+  );
+
   return updated;
 }
 
@@ -139,6 +153,11 @@ async function deleteTransaction(id, user) {
 
   const deleted = await transactionRepository.remove(id);
   assertFound(deleted, id, 'transaction');
+
+  activityService.log(
+    user.sub,
+    `Menghapus transaksi Rp${Number(transaction.amount).toLocaleString('id-ID')}`,
+  );
 }
 
 module.exports = {

@@ -3,9 +3,10 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter, RouterView } from 'vue-router';
 import {
   LayoutDashboard, ArrowLeftRight, Wallet, Tag, Target, MessageCircle,
-  LogOut, Bell, Menu, X, User, ChevronDown,
+  LogOut, Menu, X, User, ChevronDown,
 } from '@lucide/vue';
 import { useAuth } from '@/composables/useAuth';
+import NotificationBell from '@/components/common/NotificationBell.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -127,10 +128,7 @@ function handleLogout() {
           <p class="text-xs text-muted-foreground font-medium">{{ currentPage }}</p>
         </div>
         <div class="flex items-center gap-2">
-          <button class="relative p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground">
-            <Bell :size="17" />
-            <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
-          </button>
+          <NotificationBell />
 
           <!-- Avatar Dropdown -->
           <div ref="dropdownRef" class="relative">
