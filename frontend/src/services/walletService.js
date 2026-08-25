@@ -16,4 +16,7 @@ export const walletService = {
   remove(id) {
     return api.delete(`/wallets/${id}`);
   },
+  transfer(data) {
+    return api.post('/wallets/transfer', data);
+  },
 };

@@ -49,6 +49,39 @@ async function deductBalance(id, amount) {
   return rows[0] ? new Wallet(rows[0]) : null;
 }
 
+// ponytail: atomic 2-leg move; single SQL can't span both rows
+async function transferBalance(sourceId, destinationId, amount) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const source = await client.query(
+      'UPDATE wallets SET balance = balance - $1 WHERE id = $2 AND balance >= $1 RETURNING *',
+      [amount, sourceId],
+    );
+    if (!source.rows[0]) {
+      await client.query('ROLLBACK');
+      return null;
+    }
+
+    const destination = await client.query(
+      'UPDATE wallets SET balance = balance + $1 WHERE id = $2 RETURNING *',
+      [amount, destinationId],
+    );
+
+    await client.query('COMMIT');
+    return {
+      source: new Wallet(source.rows[0]),
+      destination: new Wallet(destination.rows[0]),
+    };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 async function remove(id) {
   const { rowCount } = await pool.query('DELETE FROM wallets WHERE id = $1', [
     id,
@@ -63,5 +96,6 @@ module.exports = {
   create,
   update,
   deductBalance,
+  transferBalance,
   remove,
 };

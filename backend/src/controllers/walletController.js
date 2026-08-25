@@ -51,4 +51,20 @@ async function destroy(req, res, next) {
   }
 }
 
-module.exports = { index, show, store, update, destroy };
+async function storeTransfer(req, res, next) {
+  try {
+    const result = await walletService.transferBetweenWallets(req.body, req.user);
+    ok(
+      res,
+      {
+        source: result.source.toJSON(),
+        destination: result.destination.toJSON(),
+      },
+      'transfer successful',
+    );
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { index, show, store, update, destroy, storeTransfer };

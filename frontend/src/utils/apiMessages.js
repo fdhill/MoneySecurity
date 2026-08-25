@@ -8,6 +8,7 @@ const MESSAGE_MAP = {
   'wallet created successfully': 'Dompet berhasil ditambahkan',
   'wallet updated successfully': 'Dompet berhasil diperbarui',
   'wallet deleted successfully': 'Dompet berhasil dihapus',
+  'transfer successful': 'Transfer berhasil',
   'budget template created successfully': 'Anggaran berhasil ditambahkan',
   'budget template updated successfully': 'Anggaran berhasil diperbarui',
   'budget template deleted successfully': 'Anggaran berhasil dihapus',
@@ -67,6 +68,14 @@ const MESSAGE_PATTERNS = [
   {
     re: /You do not have permission to access this category or wallet/i,
     text: 'Anda tidak memiliki izin untuk mengakses kategori atau dompet ini',
+  },
+  {
+    re: /You can only transfer between your own wallets/i,
+    text: 'Transfer hanya boleh antar dompet milik Anda sendiri',
+  },
+  {
+    re: /Source and destination wallets must be different/i,
+    text: 'Dompet asal dan tujuan tidak boleh sama',
   },
 ];
 

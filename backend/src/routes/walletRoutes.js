@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const walletController = require('../controllers/walletController');
-const { walletCreate, walletUpdate } = require('../validation/walletValidation');
+const { walletCreate, walletUpdate, walletTransfer } = require('../validation/walletValidation');
 
 const router = Router();
 
@@ -80,6 +80,45 @@ router.get('/:id', walletController.show);
  *         description: Unauthorized
  */
 router.post('/', walletCreate, walletController.store);
+
+/**
+ * @swagger
+ * /wallets/transfer:
+ *   post:
+ *     tags: [Wallets]
+ *     summary: Transfer balance between the user's own wallets
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [source_wallet_id, destination_wallet_id, amount]
+ *             properties:
+ *               source_wallet_id:
+ *                 type: string
+ *                 format: uuid
+ *               destination_wallet_id:
+ *                 type: string
+ *                 format: uuid
+ *               amount:
+ *                 type: number
+ *                 example: 50000
+ *     responses:
+ *       200:
+ *         description: Transfer successful, returns updated source & destination wallets
+ *       400:
+ *         description: Validation error or same wallet
+ *       401:
+ *         description: Unauthorized
+ *       402:
+ *         description: Insufficient balance
+ *       403:
+ *         description: Wallets belong to another user
+ */
+router.post('/transfer', walletTransfer, walletController.storeTransfer);
 
 /**
  * @swagger

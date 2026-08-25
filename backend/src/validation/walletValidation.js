@@ -20,7 +20,32 @@ const createWalletRules = [...nameRules, ...balanceRules];
 
 const updateWalletRules = createWalletRules;
 
+const walletIdRule = (field) => [
+  body(field)
+    .notEmpty()
+    .withMessage(`${field} is required`)
+    .bail()
+    .isUUID()
+    .withMessage(`${field} must be a valid UUID`),
+];
+
+const amountRules = [
+  body('amount')
+    .notEmpty()
+    .withMessage('amount is required')
+    .bail()
+    .isInt({ min: 1, max: MAX_AMOUNT })
+    .withMessage(`amount must be a positive integer between 1 and ${MAX_AMOUNT}`),
+];
+
+const transferWalletRules = [
+  ...walletIdRule('source_wallet_id'),
+  ...walletIdRule('destination_wallet_id'),
+  ...amountRules,
+];
+
 const walletCreate = [...createWalletRules, validate];
 const walletUpdate = [...updateWalletRules, validate];
+const walletTransfer = [...transferWalletRules, validate];
 
-module.exports = { walletCreate, walletUpdate };
+module.exports = { walletCreate, walletUpdate, walletTransfer };

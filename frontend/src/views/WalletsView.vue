@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { Plus, Edit2, Trash2, Banknote } from '@lucide/vue';
+import { Plus, Edit2, Trash2, Banknote, ArrowLeftRight } from '@lucide/vue';
 import WalletModal from '@/components/wallets/WalletModal.vue';
+import TransferModal from '@/components/wallets/TransferModal.vue';
 import { formatIDR } from '@/components/common/icons';
 import { walletService } from '@/services/walletService';
 import { useToast } from '@/composables/useToast';
@@ -12,6 +13,7 @@ const wallets = ref([]);
 const loading = ref(true);
 const showWalletModal = ref(false);
 const editingWallet = ref(null);
+const showTransferModal = ref(false);
 
 const WALLET_COLORS = ['#10b981', '#2563eb', '#00aed6', '#ee4d2d', '#8b5cf6', '#f59e0b', '#ec4899', '#0f172a', '#6366f1', '#f97316'];
 
@@ -65,6 +67,14 @@ function deleteWallet(id) {
     }).catch((e) => showToast(e?.message, 'error'));
   }
 }
+
+function transferWallets(data) {
+  walletService.transfer(data).then((res) => {
+    showToast(res?.message, 'success');
+    showTransferModal.value = false;
+    fetchData();
+  }).catch((e) => showToast(e?.message, 'error'));
+}
 </script>
 
 <template>
@@ -74,9 +84,15 @@ function deleteWallet(id) {
         <h1 class="text-xl font-bold text-foreground">Dompet</h1>
         <p class="text-sm text-muted-foreground mt-0.5">Total saldo &middot; <span class="font-mono font-semibold text-foreground">{{ formatIDR(totalBalance) }}</span></p>
       </div>
-      <button @click="openAdd" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm">
-        <Plus :size="16" /> Tambah Dompet
-      </button>
+      <div class="flex items-center gap-2">
+        <button @click="showTransferModal = true" :disabled="wallets.length < 2"
+          class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+          <ArrowLeftRight :size="15" /> Transfer
+        </button>
+        <button @click="openAdd" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm">
+          <Plus :size="16" /> Tambah Dompet
+        </button>
+      </div>
     </div>
 
     <template v-if="!loading">
@@ -118,5 +134,6 @@ function deleteWallet(id) {
     </template>
 
     <WalletModal v-if="showWalletModal" :editing="editingWallet" @save="saveWallet" @close="showWalletModal = false; editingWallet = null" />
+    <TransferModal v-if="showTransferModal" :wallets="wallets" @save="transferWallets" @close="showTransferModal = false" />
   </div>
 </template>
