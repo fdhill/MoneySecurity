@@ -27,8 +27,10 @@ async function findByEmail(email) {
   return rows[0] ? new User(rows[0]) : null;
 }
 
-async function create({ name, email, phone_number, password, role }) {
-  const { rows } = await pool.query(
+// ponytail: optional client for transaction support
+async function create({ name, email, phone_number, password, role }, client) {
+  const q = client || pool;
+  const { rows } = await q.query(
     'INSERT INTO users (name, email, phone_number, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *',
     [name, email, phone_number, password, role],
   );

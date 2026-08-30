@@ -1,5 +1,7 @@
 const bcrypt = require('bcryptjs');
+const pool = require('../config/db');
 const userRepository = require('../repositories/userRepository');
+const defaultService = require('./defaultService');
 const activityService = require('./activityService');
 const { assertFound, httpError } = require('../utils/helpers');
 
@@ -36,13 +38,28 @@ async function createUser(data, user) {
   }
 
   const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
-  return userRepository.create({
-    name: data.name,
-    email: data.email,
-    phone_number: data.phone_number,
-    password: hashedPassword,
-    role: data.role,
-  });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const createdUser = await userRepository.create(
+      {
+        name: data.name,
+        email: data.email,
+        phone_number: data.phone_number,
+        password: hashedPassword,
+        role: data.role,
+      },
+      client,
+    );
+    await defaultService.provisionDefaults(client, createdUser.id);
+    await client.query('COMMIT');
+    return createdUser;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 async function updateUser(id, { name, phone_number }) {
