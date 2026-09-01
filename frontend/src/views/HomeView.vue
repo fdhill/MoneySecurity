@@ -4,9 +4,9 @@ import { ref, onMounted } from 'vue';
 const apiStatus = ref('checking...');
 
 onMounted(async () => {
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  const baseUrl = import.meta.env.VITE_API_URL || '/api';
   try {
-    const res = await fetch(`${baseUrl}/api/health`);
+    const res = await fetch(`${baseUrl}/health`);
     const data = await res.json();
     apiStatus.value = data.status === 'ok' ? 'connected' : 'error';
   } catch {
