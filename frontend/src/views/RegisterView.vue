@@ -107,6 +107,10 @@ async function handleVerifyOtp() {
     localStorage.setItem('user', JSON.stringify(user));
     router.push('/');
   } catch (e) {
+    console.log('Error object:', e);
+    console.log('e.response:', e.response);
+    console.log('e.message:', e.message);
+    console.log('e.success:', e.success);
     error.value = translateApiMessage(e.response?.data?.message) || e.message || 'Verifikasi gagal';
   } finally {
     loading.value = false;
