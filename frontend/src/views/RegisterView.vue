@@ -99,7 +99,7 @@ async function handleVerifyOtp() {
       password: password.value,
       phone_number: phoneNumber.value || undefined,
     });
-    const { token, user } = res.data.data;
+    const { token, user } = res.data;
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
     router.push('/');
