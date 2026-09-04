@@ -3,6 +3,10 @@ import { ref, computed } from 'vue';
 import { X } from '@lucide/vue';
 import { formatIDR } from '@/components/common/icons';
 
+function formatAmount(amount) {
+  return Number(amount).toLocaleString('id-ID');
+}
+
 const props = defineProps({ wallets: Array });
 const emit = defineEmits(['save', 'close']);
 
