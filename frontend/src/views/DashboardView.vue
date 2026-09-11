@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { Plus, Banknote, Utensils, Car, Briefcase, Music, ShoppingBag, GraduationCap, Heart, Home, Zap, Coffee } from '@lucide/vue';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, Tooltip as ChartTooltip, Legend as ChartLegend, LineController, DoughnutController } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Tooltip as ChartTooltip, Legend as ChartLegend, BarController, DoughnutController } from 'chart.js';
 import StatCard from '@/components/dashboard/StatCard.vue';
 import BudgetWidget from '@/components/dashboard/BudgetWidget.vue';
 import TxModal from '@/components/transactions/TxModal.vue';
@@ -13,7 +13,7 @@ import { useToast } from '@/composables/useToast';
 
 const { showToast } = useToast();
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, ChartTooltip, ChartLegend, LineController, DoughnutController);
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, ChartTooltip, ChartLegend, BarController, DoughnutController);
 
 const router = useRouter();
 const categories = ref([]);
@@ -21,14 +21,14 @@ const wallets = ref([]);
 const budgets = ref([]);
 const budgetSummaries = ref([]);
 const totals = ref({ income: 0, expense: 0 });
-const cashflow = ref([]);
+const monthly = ref([]);
 const categoryExpense = ref([]);
 const recentTransactions = ref([]);
 const loading = ref(true);
 const showTxModal = ref(false);
-const cashChartEl = ref(null);
+const barChartEl = ref(null);
 const pieChartEl = ref(null);
-let cashChart = null;
+let barChart = null;
 let pieChart = null;
 
 const ICON_COMPONENTS = { utensils: Utensils, car: Car, briefcase: Briefcase, music: Music, shopping: ShoppingBag, graduation: GraduationCap, heart: Heart, home: Home, zap: Zap, coffee: Coffee };
@@ -51,7 +51,7 @@ async function fetchData() {
     budgets.value = data.budgets || [];
     budgetSummaries.value = data.budgetSummaries || [];
     totals.value = data.totals || { income: 0, expense: 0 };
-    cashflow.value = data.cashflow || [];
+    monthly.value = data.monthly || [];
     categoryExpense.value = data.categoryExpense || [];
     recentTransactions.value = data.recentTransactions || [];
   } catch (e) { console.error('Fetch error:', e); } finally { loading.value = false; }
@@ -60,22 +60,22 @@ async function fetchData() {
 async function syncCharts() {
   await nextTick();
   await new Promise((r) => requestAnimationFrame(r));
-  if (!cashChartEl.value) {
-    if (cashChart) {
-      try { cashChart.destroy(); } catch (e) { console.error('Gagal destroy chart arus kas', e); }
-      cashChart = null;
+  if (!barChartEl.value) {
+    if (barChart) {
+      try { barChart.destroy(); } catch (e) { console.error('Gagal destroy chart bulanan', e); }
+      barChart = null;
     }
-  } else if (!cashChart) {
+  } else if (!barChart) {
     try {
-      cashChart = new ChartJS(cashChartEl.value, { type: 'line', data: areaChartData.value, options: lineChartOptions });
+      barChart = new ChartJS(barChartEl.value, { type: 'bar', data: barChartData.value, options: barChartOptions });
     } catch (e) {
-      try { ChartJS.getChart(cashChartEl.value)?.destroy(); } catch {}
-      console.error('Gagal membuat chart arus kas:', e);
+      try { ChartJS.getChart(barChartEl.value)?.destroy(); } catch {}
+      console.error('Gagal membuat chart bulanan:', e);
     }
   }
-  if (cashChart) {
-    cashChart.data = areaChartData.value;
-    cashChart.update();
+  if (barChart) {
+    barChart.data = barChartData.value;
+    barChart.update();
   }
   if (pieData.value.length === 0) {
     if (pieChart) {
@@ -109,9 +109,9 @@ onMounted(() => {
 watch(loading, (v) => { if (!v) syncCharts(); });
 
 onBeforeUnmount(() => {
-  try { cashChart?.destroy(); } catch (e) { console.error('Gagal destroy chart arus kas', e); }
+  try { barChart?.destroy(); } catch (e) { console.error('Gagal destroy chart bulanan', e); }
   try { pieChart?.destroy(); } catch (e) { console.error('Gagal destroy chart kategori', e); }
-  cashChart = null;
+  barChart = null;
   pieChart = null;
 });
 
@@ -121,26 +121,51 @@ const totalIncome = computed(() => Number(totals.value.income || 0));
 const totalExpense = computed(() => Number(totals.value.expense || 0));
 const totalBalance = computed(() => wallets.value.reduce((s, w) => s + Number(w.balance), 0));
 
-const areaChartData = computed(() => {
-  const flow = cashflow.value || [];
+const barChartData = computed(() => {
+  const days = monthly.value || [];
   return {
-    labels: flow.map((d) => MONTHS[Number(d.month.slice(5, 7)) - 1]),
+    labels: days.map((d) => Number(d.day.slice(8, 10))),
     datasets: [
-      { label: 'Pemasukan', data: flow.map((d) => Number(d.income)), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.3 },
-      { label: 'Pengeluaran', data: flow.map((d) => Number(d.expense)), borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.3 },
+      { label: 'Pemasukan', data: days.map((d) => Number(d.income)), backgroundColor: '#10b981', borderRadius: 4, maxBarThickness: 18 },
+      { label: 'Pengeluaran', data: days.map((d) => Number(d.expense)), backgroundColor: '#ef4444', borderRadius: 4, maxBarThickness: 18 },
     ],
   };
 });
 
-const hasFlowData = computed(() => areaChartData.value.datasets.some(ds => ds.data.some(v => Number(v) > 0)));
+const hasMonthData = computed(() => barChartData.value.datasets.some((ds) => ds.data.some((v) => Number(v) > 0)));
 
-const lineChartOptions = {
+const WEEKDAYS = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+function formatDayHeader(dayNum) {
+  const date = new Date(now.getFullYear(), now.getMonth(), dayNum);
+  return `${WEEKDAYS[date.getDay()]}, ${dayNum} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+}
+
+const barChartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   interaction: { intersect: false, mode: 'index' },
-  plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => formatIDR(ctx.raw) } } },
-  scales: { x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#6b7a99' } }, y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 }, color: '#6b7a99', callback: (v) => `${(v / 1000000).toFixed(1)}jt` } } },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        title: (items) => formatDayHeader(Number(items[0]?.label)),
+        label: (ctx) => `${ctx.dataset.label}: ${formatIDR(ctx.raw)}`,
+      },
+    },
+  },
+  scales: {
+    x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#6b7a99', maxRotation: 0 } },
+    y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 }, color: '#6b7a99', callback: (v) => (v >= 1e6 ? `${(v / 1e6).toFixed(1)}jt` : v >= 1e3 ? `${(v / 1e3).toFixed(0)}rb` : v) } },
+  },
 };
+
+const todayStr = computed(() => {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+});
+
+const todaySummary = computed(() => (monthly.value || []).find((d) => d.day === todayStr.value));
 
 const pieData = computed(() => (categoryExpense.value || []).map((d, i) => {
   const cat = categories.value.find((c) => c.id === d.category_id);
@@ -162,7 +187,7 @@ const pieChartOptions = {
   plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, usePointStyle: true, pointStyle: 'circle', padding: 12, boxWidth: 8 } }, tooltip: { callbacks: { label: (ctx) => formatIDR(ctx.raw) } } },
 };
 
-watch([areaChartData, pieChartData], syncCharts);
+watch([barChartData, pieChartData], syncCharts);
 
 const recentTx = computed(() => recentTransactions.value);
 
@@ -197,16 +222,22 @@ function saveTx(data) {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="lg:col-span-2 bg-card rounded-2xl p-5 border border-border shadow-sm">
           <div class="flex items-center justify-between mb-5">
-            <h3 class="text-sm font-semibold text-foreground">Arus Kas 7 Bulan</h3>
+            <div>
+              <h3 class="text-sm font-semibold text-foreground">Pemasukan &amp; Pengeluaran</h3>
+              <p class="text-xs text-muted-foreground mt-0.5">{{ MONTHS[now.getMonth()] }} {{ now.getFullYear() }}</p>
+            </div>
             <div class="flex gap-3 text-xs text-muted-foreground">
               <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block" />Pemasukan</span>
               <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-400 inline-block" />Pengeluaran</span>
             </div>
           </div>
-          <div v-if="hasFlowData" style="height: 200px;">
-            <canvas ref="cashChartEl" />
+          <div v-if="todaySummary" class="mb-3 text-xs text-muted-foreground">
+            Hari ini: <span class="text-emerald-600 font-semibold">Pemasukan {{ formatShort(Number(todaySummary.income)) }}</span> &middot; <span class="text-rose-500 font-semibold">Pengeluaran {{ formatShort(Number(todaySummary.expense)) }}</span>
           </div>
-          <div v-else class="flex items-center justify-center h-[200px] text-muted-foreground text-sm">Belum ada data transaksi dalam 7 bulan terakhir</div>
+          <div v-if="hasMonthData" style="height: 200px;">
+            <canvas ref="barChartEl" />
+          </div>
+          <div v-else class="flex items-center justify-center h-[200px] text-muted-foreground text-sm">Belum ada data transaksi bulan ini</div>
         </div>
         <div class="bg-card rounded-2xl p-5 border border-border shadow-sm">
           <h3 class="text-sm font-semibold text-foreground mb-5">Pengeluaran per Kategori</h3>
