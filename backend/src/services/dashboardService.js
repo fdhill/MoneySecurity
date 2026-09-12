@@ -15,6 +15,16 @@ function periodForMonth(offset = 0) {
   };
 }
 
+function periodForMonthToDate() {
+  const now = new Date();
+  const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const days = [];
+  for (let i = 1; i <= now.getDate(); i++) {
+    days.push(fmt(new Date(now.getFullYear(), now.getMonth(), i)));
+  }
+  return { start: days[0], end: days[days.length - 1], days };
+}
+
 async function buildBudgetSummaries(templates, user) {
   const summaries = [];
   for (const template of templates) {
@@ -34,9 +44,9 @@ async function buildBudgetSummaries(templates, user) {
 
 async function getDashboard(user) {
   const current = periodForMonth();
-  const rangeStart = periodForMonth(-6);
+  const monthToDate = periodForMonthToDate();
 
-  const [wallets, categories, totals, monthRows, categoryRows, recentPage, budgets] =
+  const [wallets, categories, totals, dayRows, categoryRows, recentPage, budgets] =
     await Promise.all([
       walletRepository.findByUserId(user.sub),
       categoryRepository.findByUserId(user.sub),
@@ -45,22 +55,20 @@ async function getDashboard(user) {
         current.start,
         current.end,
       ),
-      transactionRepository.sumByMonth(user.sub, rangeStart.start, current.end),
+      transactionRepository.sumByDay(user.sub, monthToDate.start, monthToDate.end),
       transactionRepository.sumExpenseByCategory(user.sub, 5),
       transactionRepository.findByUserId(user.sub, { page: 1, limit: 5 }),
       budgetTemplateRepository.findByUserId(user.sub),
     ]);
 
-  const cashflow = [];
-  for (let i = 6; i >= 0; i--) {
-    const p = periodForMonth(-i);
-    const row = monthRows.find((r) => r.month === p.key);
-    cashflow.push({
-      month: p.key,
+  const monthly = monthToDate.days.map((day) => {
+    const row = dayRows.find((r) => r.day === day);
+    return {
+      day,
       income: row ? Number(row.income) : 0,
       expense: row ? Number(row.expense) : 0,
-    });
-  }
+    };
+  });
 
   const budgetSummaries = await buildBudgetSummaries(budgets, user);
 
@@ -71,7 +79,7 @@ async function getDashboard(user) {
       income: Number(totals.income || 0),
       expense: Number(totals.expense || 0),
     },
-    cashflow,
+    monthly,
     categoryExpense: categoryRows.map((r) => ({
       category_id: r.category_id,
       name: r.name,

@@ -137,10 +137,10 @@ async function sumIncomeExpenseByPeriod(user_id, start, end) {
   return rows[0];
 }
 
-async function sumByMonth(user_id, start, end) {
+async function sumByDay(user_id, start, end) {
   const { rows } = await pool.query(
     `SELECT
-       to_char(transaction_date, 'YYYY-MM') AS month,
+       to_char(transaction_date, 'YYYY-MM-DD') AS day,
        COALESCE(SUM(amount) FILTER (WHERE type = 'income'), 0)::numeric AS income,
        COALESCE(SUM(amount) FILTER (WHERE type = 'expense'), 0)::numeric AS expense
      FROM transactions
@@ -182,7 +182,7 @@ module.exports = {
   update,
   sumExpenseByCategoryAndPeriod,
   sumIncomeExpenseByPeriod,
-  sumByMonth,
+  sumByDay,
   sumExpenseByCategory,
   remove,
 };

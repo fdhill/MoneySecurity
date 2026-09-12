@@ -8,7 +8,7 @@ const router = Router();
  * /dashboard:
  *   get:
  *     tags: [Dashboard]
- *     summary: Get dashboard summary (wallets, categories, totals, cashflow, category expense, recent transactions, budgets)
+ *     summary: Get dashboard summary (wallets, categories, totals, monthly, category expense, recent transactions, budgets)
  *     security:
  *       - bearerAuth: []
  *     responses:
